@@ -86,7 +86,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-8 max-w-4xl">
-      <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
+      <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
         <User className="w-5 h-5 text-violet-500" />
         <span>Profile & Account Security</span>
       </h2>

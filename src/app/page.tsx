@@ -94,7 +94,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-16">
       {/* Welcome Banner Card */}
       {currentUser && (
         <div className="bg-gradient-to-r from-violet-600 via-violet-500 to-cyan-500 text-white rounded-2xl p-6 shadow-xl shadow-violet-500/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden border border-white/10">
@@ -125,7 +125,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
+      <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
         <LayoutDashboard className="w-5 h-5 text-violet-500" />
         <span>Dashboard Overview</span>
       </h2>

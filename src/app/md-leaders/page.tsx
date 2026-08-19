@@ -155,7 +155,7 @@ export default function MDLeadersPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
+        <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
           <ClipboardList className="w-5 h-5 text-violet-500" />
           <span>Motor & Delivery (M/D) Leaders</span>
         </h2>

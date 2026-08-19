@@ -179,7 +179,7 @@ export default function CompliancePage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
+        <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
           <ShieldAlert className="w-5 h-5 text-rose-500" />
           <span>Disciplinary Compliance & Queries</span>
         </h2>

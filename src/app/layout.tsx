@@ -59,6 +59,7 @@ export default function RootLayout({
   const [currentQuery, setCurrentQuery] = useState('');
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [pageLoading, setPageLoading] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Load theme and auth from localStorage
   useEffect(() => {
@@ -100,7 +101,7 @@ export default function RootLayout({
       setPageLoading(false);
     }, 450); // Keep it brief and snappy
     return () => clearTimeout(timer);
-  }, [pathname, currentQuery]);
+  }, [pathname]);
 
   // Keep track of search params to highlight active subItem
   useEffect(() => {
@@ -122,10 +123,15 @@ export default function RootLayout({
   };
 
   const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('currentUser');
     setIsLoggedIn(false);
     setCurrentUser(null);
+    setShowLogoutConfirm(false);
     router.push('/login');
   };
 
@@ -245,6 +251,33 @@ export default function RootLayout({
       </head>
       <body className="h-screen overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex font-sans transition-colors duration-300">
         {pageLoading && <PremiumLoader />}
+        {showLogoutConfirm && (
+          <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center space-y-4 transition-all">
+              <div className="mx-auto w-12 h-12 bg-rose-500/10 dark:bg-rose-500/5 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center">
+                <LogOut className="w-6 h-6" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Sign Out Command Center?</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">You will need to verify your credentials to log back into the operations system.</p>
+              </div>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 font-semibold py-2.5 rounded-xl text-xs transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmLogout}
+                  className="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-rose-500/10"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="flex w-full h-full relative">
 
           {/* Mobile Backdrop Overlay */}
@@ -261,7 +294,7 @@ export default function RootLayout({
             <div className="mb-8 flex justify-between items-center">
               <div>
                 <div className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-violet-400 bg-clip-text text-transparent flex items-center gap-2.5">
-                  <img src="/logo.jpeg" alt="Braham Sama Logo" className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-slate-800/80 shadow-sm" />
+                  <img src="/logo.jpeg" alt="Braham Sama Logo" className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-800/80 shadow-sm" />
                   <span>Braham Sama</span>
                 </div>
                 <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mt-1">Company Operations</div>
@@ -374,24 +407,28 @@ export default function RootLayout({
             </div>
           </aside>
 
-          {/* Main Workspace */}
-          <main className="flex-1 px-4 md:px-8 pb-8 pt-0 overflow-y-auto h-full max-w-full">
-            <header className="sticky top-0 z-30 pt-8 pb-4 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 -mx-4 px-4 md:-mx-8 md:px-8 flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
-              <div className="flex items-center gap-4">
+          {/* Main Workspace Wrapper */}
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
+            {/* Header stays completely static at the top and will never shake or lag */}
+            <header className="pt-6 pb-4 px-4 md:px-8 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800/80 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shrink-0">
+              <div className="flex items-start gap-2">
                 {/* Mobile Menu Hamburger Toggle */}
                 <button
                   onClick={() => setIsMobileOpen(true)}
-                  className="md:hidden p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-all active:scale-95"
+                  className="md:hidden p-1 bg-transparent text-slate-700 dark:text-slate-200 transition-all active:scale-95 hover:text-slate-900 dark:hover:text-white"
                 >
-                  <Menu className="w-5 h-5" />
+                  <Menu className="w-6 h-6" />
                 </button>
 
                 <div>
                   <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Braham Sama Operations System</h1>
+                  <div className="md:hidden text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <span>{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
+              <div className="hidden md:flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
                 <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 px-4 py-2.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 shadow-sm transition-colors flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-slate-500" />
                   <span>{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
@@ -399,8 +436,11 @@ export default function RootLayout({
               </div>
             </header>
 
-            {children}
-          </main>
+            {/* Scrollable main panel container */}
+            <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-full">
+              {children}
+            </main>
+          </div>
         </div>
       </body>
     </html>
