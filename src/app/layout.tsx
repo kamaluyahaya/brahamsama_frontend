@@ -22,6 +22,30 @@ import {
 } from 'lucide-react';
 import './globals.css';
 
+function PremiumLoader() {
+  return (
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-xl transition-all duration-300">
+      <div className="relative flex items-center justify-center">
+        {/* Outer Rotating Gradient Ring */}
+        <div className="absolute w-24 h-24 rounded-full border-4 border-transparent border-t-violet-600 border-r-cyan-500 animate-spin" />
+
+        {/* Inner Pulsing Pulse Ring */}
+        <div className="absolute w-28 h-28 rounded-full bg-violet-500/10 dark:bg-violet-500/5 animate-ping duration-1000" />
+
+        {/* Logo container */}
+        <div className="relative w-16 h-16 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-slate-900 flex items-center justify-center animate-pulse">
+          <img src="/logo.jpeg" alt="Braham Sama" className="w-full h-full object-cover" />
+        </div>
+      </div>
+
+      {/* Status indicator */}
+      <div className="mt-8 flex flex-col items-center gap-1">
+        <span className="text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-slate-200">Braham Sama</span>
+      </div>
+    </div>
+  );
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -34,6 +58,7 @@ export default function RootLayout({
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [currentQuery, setCurrentQuery] = useState('');
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [pageLoading, setPageLoading] = useState(false);
 
   // Load theme and auth from localStorage
   useEffect(() => {
@@ -67,6 +92,15 @@ export default function RootLayout({
   useEffect(() => {
     setIsMobileOpen(false);
   }, [pathname]);
+
+  // Page Transition Loader
+  useEffect(() => {
+    setPageLoading(true);
+    const timer = setTimeout(() => {
+      setPageLoading(false);
+    }, 450); // Keep it brief and snappy
+    return () => clearTimeout(timer);
+  }, [pathname, currentQuery]);
 
   // Keep track of search params to highlight active subItem
   useEffect(() => {
@@ -108,38 +142,38 @@ export default function RootLayout({
   }
 
   const navItems: NavItem[] = [
-    { 
-      name: 'Dashboard', 
-      path: '/', 
-      icon: <LayoutDashboard className="w-5 h-5" /> 
+    {
+      name: 'Dashboard',
+      path: '/',
+      icon: <LayoutDashboard className="w-5 h-5" />
     },
-    { 
-      name: 'Clients Admin', 
-      path: '/clients', 
+    {
+      name: 'Clients Admin',
+      path: '/clients',
       icon: <Users className="w-5 h-5" />,
       subItems: [
         { name: 'Register New Client', path: '/clients?action=add' }
       ]
     },
-    { 
-      name: 'Raiders Manager', 
-      path: '/raiders', 
+    {
+      name: 'Raiders Manager',
+      path: '/raiders',
       icon: <Bike className="w-5 h-5" />,
       subItems: [
         { name: 'Deploy New Raider', path: '/raiders?action=add' }
       ]
     },
-    { 
-      name: 'M/D Leaders', 
-      path: '/md-leaders', 
+    {
+      name: 'M/D Leaders',
+      path: '/md-leaders',
       icon: <ClipboardList className="w-5 h-5" />,
       subItems: [
         { name: 'Add M/D Leader', path: '/md-leaders?action=add' }
       ]
     },
-    { 
-      name: 'Accounts Office', 
-      path: '/accounts', 
+    {
+      name: 'Accounts Office',
+      path: '/accounts',
       icon: <Briefcase className="w-5 h-5" />,
       subItems: [
         { name: 'Log Payment / Return', path: '/accounts?tab=returns' },
@@ -147,9 +181,9 @@ export default function RootLayout({
         { name: 'Generate Financial Report', path: '/accounts?tab=reports' }
       ]
     },
-    { 
-      name: 'Compliance Logs', 
-      path: '/compliance', 
+    {
+      name: 'Compliance Logs',
+      path: '/compliance',
       icon: <ShieldAlert className="w-5 h-5" />,
       subItems: [
         { name: 'Log Query / Action', path: '/compliance?action=add' }
@@ -196,9 +230,7 @@ export default function RootLayout({
           <link rel="icon" href="/logo.jpeg" />
         </head>
         <body className="min-h-screen bg-slate-50 dark:bg-slate-955 flex items-center justify-center">
-          <div className="text-sm font-semibold text-slate-400 dark:text-slate-500 animate-pulse">
-            Connecting Command Center...
-          </div>
+          <PremiumLoader />
         </body>
       </html>
     );
@@ -211,8 +243,9 @@ export default function RootLayout({
         <meta name="description" content="Company Operations and Fleet Management Dashboard" />
         <link rel="icon" href="/logo.jpeg" />
       </head>
-      <body className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex font-sans transition-colors duration-300">
-        <div className="flex w-full min-h-screen relative">
+      <body className="h-screen overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex font-sans transition-colors duration-300">
+        {pageLoading && <PremiumLoader />}
+        <div className="flex w-full h-full relative">
 
           {/* Mobile Backdrop Overlay */}
           {isMobileOpen && (
@@ -263,8 +296,8 @@ export default function RootLayout({
                     {item.subItems && showSubItems && (
                       <div className="pl-6 pr-2 py-1 flex flex-col gap-1.5 border-l-2 border-violet-500/30 dark:border-slate-800 ml-6 mt-0.5 mb-2">
                         {item.subItems.map((sub) => {
-                          const isSubActive = (pathname === sub.path.split('?')[0] && 
-                            (sub.path.includes('?') 
+                          const isSubActive = (pathname === sub.path.split('?')[0] &&
+                            (sub.path.includes('?')
                               ? currentQuery.includes(sub.path.split('?')[1])
                               : true)) || (sub.path === '/clients?action=add' && pathname === '/clients/new');
                           return (
@@ -278,11 +311,10 @@ export default function RootLayout({
                                   }
                                 }, 50);
                               }}
-                              className={`text-xs py-1 px-2 rounded-lg transition-all ${
-                                isSubActive 
-                                  ? 'text-violet-600 dark:text-white font-semibold bg-violet-600/5 dark:bg-violet-600/10' 
-                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/30 font-medium'
-                              }`}
+                              className={`text-xs py-1 px-2 rounded-lg transition-all ${isSubActive
+                                ? 'text-violet-600 dark:text-white font-semibold bg-violet-600/5 dark:bg-violet-600/10'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/30 font-medium'
+                                }`}
                             >
                               {sub.name}
                             </Link>
@@ -308,6 +340,25 @@ export default function RootLayout({
                 </div>
               )}
 
+              {/* Theme Switcher Button */}
+              <button
+                onClick={toggleTheme}
+                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-semibold text-xs border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-850 transition-all active:scale-[0.98]"
+                title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+              >
+                {theme === 'dark' ? (
+                  <>
+                    <Sun className="w-4 h-4 text-amber-500 animate-pulse" />
+                    <span>Light Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-4 h-4 text-violet-500" />
+                    <span>Dark Mode</span>
+                  </>
+                )}
+              </button>
+
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-semibold text-xs border border-transparent text-rose-500 hover:bg-rose-500/10 transition-all"
@@ -324,8 +375,8 @@ export default function RootLayout({
           </aside>
 
           {/* Main Workspace */}
-          <main className="flex-1 p-8 overflow-y-auto max-w-full">
-            <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 border-slate-200 dark:border-slate-800/80 gap-4">
+          <main className="flex-1 px-4 md:px-8 pb-8 pt-0 overflow-y-auto h-full max-w-full">
+            <header className="sticky top-0 z-30 pt-8 pb-4 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 -mx-4 px-4 md:-mx-8 md:px-8 flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
               <div className="flex items-center gap-4">
                 {/* Mobile Menu Hamburger Toggle */}
                 <button
@@ -340,32 +391,7 @@ export default function RootLayout({
                 </div>
               </div>
 
-              {/* Center Info: RC No & State Branch */}
-              <div className="flex flex-row items-center gap-2 lg:mx-auto text-xs font-semibold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 px-4 py-2 rounded-xl shadow-sm">
-                <span>RC No: 7121543</span>
-                <span className="text-slate-300 dark:text-slate-700">|</span>
-                <span>Kano State Branch</span>
-              </div>
-
               <div className="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
-                {/* Theme Switch Button */}
-                <button
-                  onClick={toggleTheme}
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-2.5 rounded-xl shadow-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-sm transition-all active:scale-95 flex items-center gap-2 font-medium text-slate-700 dark:text-slate-200"
-                  title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-                >
-                  {theme === 'dark' ? (
-                    <>
-                      <Sun className="w-4 h-4 text-amber-500 animate-pulse" />
-                      <span>Light Mode</span>
-                    </>
-                  ) : (
-                    <>
-                      <Moon className="w-4 h-4 text-violet-500" />
-                      <span>Dark Mode</span>
-                    </>
-                  )}
-                </button>
                 <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 px-4 py-2.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 shadow-sm transition-colors flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-slate-500" />
                   <span>{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>

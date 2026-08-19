@@ -231,7 +231,7 @@ export default function Dashboard() {
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">Common operational workflows</p>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Link href="/clients" className="bg-slate-100 hover:bg-slate-200/85 dark:bg-slate-800/30 dark:hover:bg-slate-800/70 border border-slate-200 dark:border-slate-800/80 rounded-xl p-4 flex flex-col items-center gap-2 text-center transition-all hover:-translate-y-1">
               <UserPlus className="w-6 h-6 text-violet-500" />
               <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Add New Client</span>

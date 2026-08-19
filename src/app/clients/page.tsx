@@ -123,7 +123,22 @@ export default function ClientsPage() {
       {/* Clients Table */}
       <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm">
         {loading ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">Loading client records...</p>
+          <div className="space-y-4 animate-pulse p-2">
+            <div className="h-10 bg-slate-150 dark:bg-slate-800/50 rounded-xl w-full" />
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-center gap-6 py-3 border-b border-slate-100 dark:border-slate-800/50 last:border-b-0">
+                <div className="w-10 h-10 bg-slate-200 dark:bg-slate-800 rounded-full shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-1/4" />
+                  <div className="h-3 bg-slate-150 dark:bg-slate-800/60 rounded-md w-1/6" />
+                </div>
+                <div className="h-4 bg-slate-150 dark:bg-slate-800/60 rounded-md w-16 hidden sm:block" />
+                <div className="h-4 bg-slate-150 dark:bg-slate-800/60 rounded-md w-24 hidden md:block" />
+                <div className="h-4 bg-slate-150 dark:bg-slate-800/60 rounded-md w-20 hidden lg:block" />
+                <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-xl w-16 shrink-0" />
+              </div>
+            ))}
+          </div>
         ) : clients.length === 0 ? (
           <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">No clients found. Click 'Add Client Record' to log one.</p>
         ) : (
