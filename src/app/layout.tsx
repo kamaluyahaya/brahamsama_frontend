@@ -249,10 +249,10 @@ export default function RootLayout({
         <meta name="description" content="Company Operations and Fleet Management Dashboard" />
         <link rel="icon" href="/logo.jpeg" />
       </head>
-      <body className="h-screen overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex font-sans transition-colors duration-300">
+      <body className="h-screen overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans transition-colors duration-300 relative">
         {pageLoading && <PremiumLoader />}
         {showLogoutConfirm && (
-          <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-955/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center space-y-4 transition-all">
               <div className="mx-auto w-12 h-12 bg-rose-500/10 dark:bg-rose-500/5 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center">
                 <LogOut className="w-6 h-6" />

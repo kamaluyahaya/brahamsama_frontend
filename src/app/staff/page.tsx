@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Users, User, Plus, Trash2, X, Search, ShieldAlert, KeyRound, Save } from 'lucide-react';
+import ModalPortal from '@/components/ModalPortal';
 
 interface Staff {
   id: number;
@@ -265,72 +266,80 @@ export default function StaffPage() {
 
       {/* Add Staff Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-[0.5rem] p-6 shadow-2xl space-y-6">
-            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Register Operations Staff</h3>
-              <button className="text-slate-400 hover:text-slate-655 dark:hover:text-white" onClick={() => setShowAddModal(false)}>
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {error && (
-              <div className="bg-rose-505/10 border border-rose-505/20 text-rose-605 dark:text-rose-450 p-4 rounded-xl text-xs font-semibold flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleAddStaff} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Full Staff Name *</label>
-                  <input type="text" name="name" value={formData.name} onChange={handleInputChange} required placeholder="e.g. John Doe" className="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-505 dark:text-slate-400 uppercase tracking-wider">Role Clearance *</label>
-                  <select name="role" value={formData.role} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-505/50 text-sm">
-                    <option value="Staff">Staff (Standard Officer)</option>
-                    <option value="Admin">Admin (Full Control)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Username *</label>
-                  <input type="text" name="username" value={formData.username} onChange={handleInputChange} required placeholder="Login username" className="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Login Password *</label>
-                  <div className="relative flex items-center">
-                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-4 pointer-events-none" />
-                    <input type="password" name="password" value={formData.password} onChange={handleInputChange} required placeholder="Password credentials" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl pl-11 pr-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact Email</label>
-                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="staff@brahamsama.com" className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Phone Number</label>
-                  <input type="text" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Mobile number" className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-800 pt-6">
-                <button type="button" className="bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition-all" onClick={() => setShowAddModal(false)}>Cancel</button>
-                <button type="submit" className="bg-violet-600 hover:bg-violet-505 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2" disabled={isSubmitting}>
-                  <Save className="w-4 h-4" />
-                  <span>{isSubmitting ? 'Saving...' : 'Register Staff'}</span>
+        <ModalPortal>
+          <div 
+            className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 overflow-y-auto"
+            onClick={() => setShowAddModal(false)}
+          >
+            <div 
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-[0.5rem] p-6 shadow-2xl space-y-6 my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Register Operations Staff</h3>
+                <button className="text-slate-400 hover:text-slate-655 dark:hover:text-white" onClick={() => setShowAddModal(false)}>
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-            </form>
+
+              {error && (
+                <div className="bg-rose-505/10 border border-rose-505/20 text-rose-605 dark:text-rose-450 p-4 rounded-xl text-xs font-semibold flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleAddStaff} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Full Staff Name *</label>
+                    <input type="text" name="name" value={formData.name} onChange={handleInputChange} required placeholder="e.g. John Doe" className="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-505 dark:text-slate-400 uppercase tracking-wider">Role Clearance *</label>
+                    <select name="role" value={formData.role} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-505/50 text-sm">
+                      <option value="Staff">Staff (Standard Officer)</option>
+                      <option value="Admin">Admin (Full Control)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Username *</label>
+                    <input type="text" name="username" value={formData.username} onChange={handleInputChange} required placeholder="Login username" className="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Login Password *</label>
+                    <div className="relative flex items-center">
+                      <KeyRound className="w-4 h-4 text-slate-400 absolute left-4 pointer-events-none" />
+                      <input type="password" name="password" value={formData.password} onChange={handleInputChange} required placeholder="Password credentials" className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl pl-11 pr-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact Email</label>
+                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="staff@brahamsama.com" className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Phone Number</label>
+                    <input type="text" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Mobile number" className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-800 pt-6">
+                  <button type="button" className="bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition-all" onClick={() => setShowAddModal(false)}>Cancel</button>
+                  <button type="submit" className="bg-violet-600 hover:bg-violet-505 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2" disabled={isSubmitting}>
+                    <Save className="w-4 h-4" />
+                    <span>{isSubmitting ? 'Saving...' : 'Register Staff'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );

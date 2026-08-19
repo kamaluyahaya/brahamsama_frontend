@@ -21,6 +21,7 @@ import {
   Users
 } from 'lucide-react';
 import ReportPreviewModal from '@/components/ReportPreviewModal';
+import ModalPortal from '@/components/ModalPortal';
 
 interface Payment {
   id: number;
@@ -403,8 +404,15 @@ export default function RaidersPage() {
 
       {/* Add Raider Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-955/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-3xl max-h-[90vh] overflow-y-auto scrollbar-none rounded-[0.5rem] p-6 shadow-2xl space-y-6">
+        <ModalPortal>
+          <div 
+            className="fixed inset-0 bg-slate-900/60 dark:bg-slate-955/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 overflow-y-auto"
+            onClick={() => setShowAddModal(false)}
+          >
+            <div 
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-3xl max-h-[90vh] overflow-y-auto scrollbar-none rounded-[0.5rem] p-6 shadow-2xl space-y-6 my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">Deploy New Raider & Asset</h3>
@@ -733,12 +741,20 @@ export default function RaidersPage() {
             </form>
           </div>
         </div>
+      </ModalPortal>
       )}
 
       {/* Detail View Modal */}
       {showDetailModal && selectedRaider && (
-        <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-955/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-3xl max-h-[90vh] flex flex-col rounded-[0.5rem] shadow-2xl overflow-hidden">
+        <ModalPortal>
+          <div 
+            className="fixed inset-0 bg-slate-900/60 dark:bg-slate-955/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 overflow-y-auto"
+            onClick={() => setShowDetailModal(false)}
+          >
+            <div 
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-3xl max-h-[90vh] flex flex-col rounded-[0.5rem] shadow-2xl overflow-hidden my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 p-6 pb-4">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Raider File Details: {selectedRaider.name}</h3>
               <button className="text-slate-400 hover:text-slate-655 dark:hover:text-white" onClick={() => setShowDetailModal(false)}>
@@ -889,6 +905,7 @@ export default function RaidersPage() {
               </div>
             </div>
           </div>
+        </ModalPortal>
       )}
 
           {selectedRaider && (

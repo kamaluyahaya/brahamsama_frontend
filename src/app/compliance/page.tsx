@@ -13,6 +13,7 @@ import {
   Printer
 } from 'lucide-react';
 import ReportPreviewModal from '@/components/ReportPreviewModal';
+import ModalPortal from '@/components/ModalPortal';
 
 interface Raider {
   id: number;
@@ -298,14 +299,21 @@ export default function CompliancePage() {
 
       {/* Add Compliance/Query Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-955/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-[0.5rem] p-6 shadow-2xl space-y-6">
-            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Log Disciplinary / Compliance Issue</h3>
-              <button className="text-slate-400 hover:text-slate-655 dark:hover:text-white" onClick={() => setShowAddModal(false)}>
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+        <ModalPortal>
+          <div 
+            className="fixed inset-0 bg-slate-900/60 dark:bg-slate-955/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 overflow-y-auto"
+            onClick={() => setShowAddModal(false)}
+          >
+            <div 
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-[0.5rem] p-6 shadow-2xl space-y-6 my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Log Disciplinary / Compliance Issue</h3>
+                <button className="text-slate-400 hover:text-slate-655 dark:hover:text-white" onClick={() => setShowAddModal(false)}>
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -370,11 +378,19 @@ export default function CompliancePage() {
             </form>
           </div>
         </div>
+      </ModalPortal>
       )}
       {/* Detail View Modal */}
       {showDetailModal && selectedAction && (
-        <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-xl rounded-[0.5rem] p-6 shadow-2xl space-y-6">
+        <ModalPortal>
+          <div 
+            className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 overflow-y-auto"
+            onClick={() => setShowDetailModal(false)}
+          >
+            <div 
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-xl rounded-[0.5rem] p-6 shadow-2xl space-y-6 my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Compliance Log Details</h3>
               <button className="text-slate-400 hover:text-slate-655 dark:hover:text-white" onClick={() => setShowDetailModal(false)}>
@@ -445,6 +461,7 @@ export default function CompliancePage() {
             </div>
           </div>
         </div>
+      </ModalPortal>
       )}
 
       {selectedAction && (
