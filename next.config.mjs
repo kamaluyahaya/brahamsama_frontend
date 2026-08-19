@@ -2,14 +2,15 @@
 const nextConfig = {
   reactStrictMode: true,
   async rewrites() {
+    const apiTarget = process.env.API_URL || 'http://localhost:5001';
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:5001/api/:path*',
+        destination: `${apiTarget}/api/:path*`,
       },
       {
         source: '/uploads/:path*',
-        destination: 'http://localhost:5001/uploads/:path*',
+        destination: `${apiTarget}/uploads/:path*`,
       },
     ];
   },
