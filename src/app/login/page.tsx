@@ -16,7 +16,7 @@ export default function LoginPage() {
   // Load theme and configure page
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    const defaultTheme = savedTheme || 'dark';
+    const defaultTheme = savedTheme || 'light';
     if (defaultTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {

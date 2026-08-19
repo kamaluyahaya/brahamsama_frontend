@@ -29,7 +29,7 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [currentQuery, setCurrentQuery] = useState('');
@@ -39,7 +39,7 @@ export default function RootLayout({
   useEffect(() => {
     // Theme Setup
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    const defaultTheme = savedTheme || 'dark';
+    const defaultTheme = savedTheme || 'light';
     setTheme(defaultTheme);
     if (defaultTheme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -176,6 +176,7 @@ export default function RootLayout({
         <head>
           <title>Braham Sama - Operations & Management System</title>
           <meta name="description" content="Company Operations and Fleet Management Dashboard" />
+          <link rel="icon" href="/logo.jpeg" />
         </head>
         <body className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex font-sans transition-colors duration-300">
           <main className="flex-1 w-full">
@@ -192,6 +193,7 @@ export default function RootLayout({
       <html lang="en">
         <head>
           <title>Braham Sama - Loading...</title>
+          <link rel="icon" href="/logo.jpeg" />
         </head>
         <body className="min-h-screen bg-slate-50 dark:bg-slate-955 flex items-center justify-center">
           <div className="text-sm font-semibold text-slate-400 dark:text-slate-500 animate-pulse">
@@ -207,6 +209,7 @@ export default function RootLayout({
       <head>
         <title>Braham Sama - Operations & Management System</title>
         <meta name="description" content="Company Operations and Fleet Management Dashboard" />
+        <link rel="icon" href="/logo.jpeg" />
       </head>
       <body className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex font-sans transition-colors duration-300">
         <div className="flex w-full min-h-screen relative">
