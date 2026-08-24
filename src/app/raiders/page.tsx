@@ -62,6 +62,8 @@ interface Raider {
   surety_phone?: string | null;
   md_leader_id?: number | null;
   md_leader_name?: string | null;
+  client_id?: number | null;
+  client_name?: string | null;
   payments?: Payment[];
   compliance?: Compliance[];
 }
@@ -69,6 +71,7 @@ interface Raider {
 export default function RaidersPage() {
   const [raiders, setRaiders] = useState<Raider[]>([]);
   const [managers, setManagers] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
@@ -117,6 +120,7 @@ export default function RaidersPage() {
     surety_name: '',
     surety_phone: '',
     md_leader_id: '',
+    client_id: '',
   });
 
   const [passportFile, setPassportFile] = useState<File | null>(null);
@@ -144,7 +148,19 @@ export default function RaidersPage() {
         console.error('Error fetching managers:', err);
       }
     }
+    async function fetchClients() {
+      try {
+        const res = await fetch('/api/clients');
+        if (res.ok) {
+          const data = await res.json();
+          setClients(data);
+        }
+      } catch (err) {
+        console.error('Error fetching clients:', err);
+      }
+    }
     fetchManagers();
+    fetchClients();
   }, []);
 
   async function fetchRaiders() {
@@ -266,6 +282,7 @@ export default function RaidersPage() {
           surety_name: '',
           surety_phone: '',
           md_leader_id: '',
+          client_id: '',
         });
         setPassportFile(null);
         setPassportPreview(null);
@@ -521,7 +538,7 @@ export default function RaidersPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase">Date of Appointment</label>
                       <input type="date" name="date_of_appointment" value={formData.date_of_appointment} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-sm" />
@@ -536,6 +553,15 @@ export default function RaidersPage() {
                         <option value="">-- Choose Manager --</option>
                         {managers.map(m => (
                           <option key={m.id} value={m.id}>{m.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase">Assign Client</label>
+                      <select name="client_id" value={formData.client_id} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-sm">
+                        <option value="">-- Choose Client --</option>
+                        {clients.map(c => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
                         ))}
                       </select>
                     </div>
@@ -668,6 +694,7 @@ export default function RaidersPage() {
                           <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Appointment:</span> <span className="font-bold text-slate-700 dark:text-white">{formData.date_of_appointment || 'N/A'}</span></div>
                           <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Govt ID:</span> <span className="font-bold text-slate-700 dark:text-white">{formData.govt_id || 'N/A'}</span></div>
                           <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Manager:</span> <span className="font-bold text-slate-700 dark:text-white">{managers.find(m => m.id.toString() === formData.md_leader_id)?.name || 'None'}</span></div>
+                          <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Client:</span> <span className="font-bold text-slate-700 dark:text-white">{clients.find(c => c.id.toString() === formData.client_id)?.name || 'None'}</span></div>
                           <div className="sm:col-span-2"><span className="text-slate-400 dark:text-slate-500 font-semibold">Address:</span> <span className="font-bold text-slate-700 dark:text-white">{formData.address || 'N/A'}</span></div>
                         </div>
                       </div>
@@ -792,6 +819,10 @@ export default function RaidersPage() {
                   <div className="grid grid-cols-2 py-1 border-b border-slate-150 dark:border-slate-850">
                     <span className="font-semibold text-slate-500 dark:text-slate-400">Assigned Manager:</span>
                     <span className="text-slate-800 dark:text-white font-bold">{selectedRaider.md_leader_name || 'None'}</span>
+                  </div>
+                  <div className="grid grid-cols-2 py-1 border-b border-slate-150 dark:border-slate-850">
+                    <span className="font-semibold text-slate-500 dark:text-slate-400">Assigned Client:</span>
+                    <span className="text-slate-800 dark:text-white font-bold">{selectedRaider.client_name || 'None'}</span>
                   </div>
                   <div className="flex flex-col py-1">
                     <span className="font-semibold text-slate-500 dark:text-slate-400">Home Address:</span>
@@ -919,6 +950,7 @@ export default function RaidersPage() {
                 { label: 'Phone Number', value: selectedRaider.phone },
                 { label: 'Appointment Date', value: selectedRaider.date_of_appointment },
                 { label: 'Assigned Manager', value: selectedRaider.md_leader_name || 'None' },
+                { label: 'Assigned Client', value: selectedRaider.client_name || 'None' },
                 { label: 'Home Address', value: selectedRaider.address },
                 { label: 'Government ID', value: selectedRaider.govt_id },
                 { label: 'Guarantor Name', value: selectedRaider.guarantor_name },

@@ -77,15 +77,22 @@ export default function RootLayout({
     const authStatus = localStorage.getItem('isLoggedIn') === 'true';
     setIsLoggedIn(authStatus);
 
+    let parsedUser = null;
     if (authStatus) {
       const storedUser = localStorage.getItem('currentUser');
       if (storedUser) {
-        setCurrentUser(JSON.parse(storedUser));
+        parsedUser = JSON.parse(storedUser);
+        setCurrentUser(parsedUser);
       }
     }
 
-    if (!authStatus && pathname !== '/login') {
+    if (!authStatus && pathname !== '/login' && pathname !== '/client-login') {
       router.push('/login');
+    } else if (authStatus && parsedUser?.role === 'Client') {
+      const restrictedRoutes = ['/clients', '/md-leaders', '/staff', '/compliance', '/accounts', '/raiders'];
+      if (restrictedRoutes.some(route => pathname.startsWith(route))) {
+        router.push('/');
+      }
     }
   }, [pathname]);
 
@@ -127,12 +134,17 @@ export default function RootLayout({
   };
 
   const confirmLogout = () => {
+    const wasClient = currentUser?.role === 'Client';
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('currentUser');
     setIsLoggedIn(false);
     setCurrentUser(null);
     setShowLogoutConfirm(false);
-    router.push('/login');
+    if (wasClient) {
+      router.push('/client-login');
+    } else {
+      router.push('/login');
+    }
   };
 
   interface SubItem {
@@ -147,7 +159,20 @@ export default function RootLayout({
     subItems?: SubItem[];
   }
 
-  const navItems: NavItem[] = [
+  const isClient = currentUser?.role === 'Client';
+
+  const navItems: NavItem[] = isClient ? [
+    {
+      name: 'Dashboard',
+      path: '/',
+      icon: <LayoutDashboard className="w-5 h-5" />
+    },
+    {
+      name: 'Profile & Settings',
+      path: '/profile',
+      icon: <User className="w-5 h-5" />
+    }
+  ] : [
     {
       name: 'Dashboard',
       path: '/',
@@ -210,15 +235,15 @@ export default function RootLayout({
   ];
 
   // Bypass Sidebar and Headers for Login view
-  if (pathname === '/login') {
+  if (pathname === '/login' || pathname === '/client-login') {
     return (
       <html lang="en">
         <head>
-          <title>Braham Sama - Operations & Management System</title>
+          <title>{pathname === '/client-login' ? 'Braham Sama - Client Portal' : 'Braham Sama - Operations & Management System'}</title>
           <meta name="description" content="Company Operations and Fleet Management Dashboard" />
           <link rel="icon" href="/logo.jpeg" />
         </head>
-        <body className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex font-sans transition-colors duration-300">
+        <body className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-955 dark:text-slate-100 flex font-sans transition-colors duration-300">
           <main className="flex-1 w-full">
             {children}
           </main>

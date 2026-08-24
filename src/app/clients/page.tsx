@@ -43,6 +43,8 @@ interface Client {
   receipt_no?: string | null;
   duration_of_completion?: string | null;
   created_at?: string;
+  username?: string | null;
+  password?: string | null;
 }
 
 export default function ClientsPage() {
@@ -56,6 +58,11 @@ export default function ClientsPage() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
+
+  // Portal Credentials Editor State
+  const [credUsername, setCredUsername] = useState('');
+  const [credPassword, setCredPassword] = useState('');
+  const [isUpdatingCreds, setIsUpdatingCreds] = useState(false);
 
   useEffect(() => {
     fetchClients();
@@ -92,6 +99,38 @@ export default function ClientsPage() {
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleUpdateCredentials = async () => {
+    if (!selectedClient) return;
+    if (!credUsername.trim()) {
+      alert('Username is required.');
+      return;
+    }
+    setIsUpdatingCreds(true);
+    try {
+      const res = await fetch(`/api/clients/${selectedClient.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: credUsername.trim(),
+          password: credPassword ? credPassword : undefined
+        })
+      });
+      if (res.ok) {
+        alert('Portal credentials updated successfully!');
+        fetchClients();
+        setShowDetailModal(false);
+      } else {
+        const data = await res.json();
+        alert('Error: ' + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Connection to server failed.');
+    } finally {
+      setIsUpdatingCreds(false);
     }
   };
 
@@ -163,7 +202,7 @@ export default function ClientsPage() {
                   <tr
                     key={client.id}
                     className="hover:bg-slate-100/40 dark:hover:bg-slate-800/20 cursor-pointer transition-colors"
-                    onClick={() => { setSelectedClient(client); setShowDetailModal(true); }}
+                    onClick={() => { setSelectedClient(client); setCredUsername(client.username || ''); setCredPassword(''); setShowDetailModal(true); }}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       {client.passport_url ? (
@@ -182,7 +221,7 @@ export default function ClientsPage() {
                     <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <button
                         className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 transition-all flex items-center gap-1.5"
-                        onClick={() => { setSelectedClient(client); setShowDetailModal(true); }}
+                        onClick={() => { setSelectedClient(client); setCredUsername(client.username || ''); setCredPassword(''); setShowDetailModal(true); }}
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>View Details</span>
@@ -281,6 +320,42 @@ export default function ClientsPage() {
                     <p className="text-sm text-slate-700 dark:text-slate-300"><strong>Receipt No:</strong> {selectedClient.receipt_no || 'N/A'}</p>
                     <p className="text-sm text-slate-700 dark:text-slate-300"><strong>Contract Term:</strong> {selectedClient.duration_of_completion || 'N/A'}</p>
                   </div>
+                </div>
+
+                <div className="border-t border-slate-200 dark:border-slate-800 pt-6 space-y-4">
+                  <h4 className="text-xs font-bold text-violet-650 dark:text-violet-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5" />
+                    <span>Client Portal Access Credentials</span>
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">Username</label>
+                      <input
+                        type="text"
+                        value={credUsername}
+                        onChange={(e) => setCredUsername(e.target.value)}
+                        className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
+                        placeholder="Configure login username"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">Password (Leave blank to keep current)</label>
+                      <input
+                        type="password"
+                        value={credPassword}
+                        onChange={(e) => setCredPassword(e.target.value)}
+                        className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
+                        placeholder="Configure login password"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleUpdateCredentials}
+                    disabled={isUpdatingCreds}
+                    className="bg-violet-605 hover:bg-violet-500 text-white font-semibold text-xs px-4 py-2 rounded-xl transition-all shadow-md active:scale-95"
+                  >
+                    {isUpdatingCreds ? 'Updating...' : 'Save Portal Credentials'}
+                  </button>
                 </div>
               </div>
 

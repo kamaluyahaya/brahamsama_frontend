@@ -42,6 +42,8 @@ export default function NewClientPage() {
     total_disbursed_amount: '',
     receipt_no: '',
     duration_of_completion: '',
+    username: '',
+    password: '',
   });
 
   useEffect(() => {
@@ -152,7 +154,6 @@ export default function NewClientPage() {
           </Link>
           <div>
             <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Log New Client Record</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Clerks and Secretarial entry desk</p>
           </div>
         </div>
         <span className="text-xs font-semibold px-3 py-1 bg-violet-500/10 border border-violet-500/20 text-violet-600 dark:text-violet-400 rounded-lg">
@@ -322,6 +323,31 @@ export default function NewClientPage() {
                   placeholder="Home Address details"
                   rows={3}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Portal Username (Optional)</label>
+                  <input
+                    type="text"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
+                    placeholder="Configure login username"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Portal Password (Optional)</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
+                    placeholder="Configure login password"
+                  />
+                </div>
               </div>
             </div>
           )}

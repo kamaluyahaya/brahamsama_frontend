@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Lock, User, Eye, EyeOff, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, ShieldCheck, AlertCircle, ArrowLeft } from 'lucide-react';
 import '../globals.css';
 
-export default function LoginPage() {
+export default function ClientLoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -46,8 +46,8 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        if (data.role === 'Client') {
-          setError('Clients must sign in through the Client Portal.');
+        if (data.role !== 'Client') {
+          setError('Staff members must sign in through the Operations Center.');
           return;
         }
         localStorage.setItem('isLoggedIn', 'true');
@@ -65,7 +65,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex flex-col justify-center items-center p-4 relative overflow-hidden transition-colors duration-300 font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-955 dark:text-slate-105 flex flex-col justify-center items-center p-4 relative overflow-hidden transition-colors duration-300 font-sans">
 
       {/* Decorative Blur Spheres for Premium Glassmorphic Contrast */}
       <div className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full bg-violet-600/10 dark:bg-violet-600/10 blur-[100px] pointer-events-none" />
@@ -83,11 +83,11 @@ export default function LoginPage() {
               (e.target as HTMLElement).style.display = 'none';
             }}
           />
-          <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-805 to-slate-700 dark:from-white dark:via-slate-200 dark:to-violet-400 bg-clip-text text-transparent">
-            Braham Sama Systems
+          <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 dark:from-white dark:via-slate-200 dark:to-violet-405 bg-clip-text text-transparent">
+            Client Portal
           </h1>
           <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-1">
-            Operations Center Authentication
+            Fleet Returns & Assets Access
           </p>
         </div>
 
@@ -102,36 +102,36 @@ export default function LoginPage() {
         {/* Login Form */}
         <form onSubmit={handleLogin} className="space-y-5">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Username</label>
+            <label className="text-[10px] font-extrabold text-slate-450 dark:text-slate-500 uppercase tracking-widest">Portal Username</label>
             <div className="relative flex items-center">
-              <User className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-4 pointer-events-none" />
+              <User className="w-4 h-4 text-slate-450 dark:text-slate-500 absolute left-4 pointer-events-none" />
               <input
                 type="text"
-                placeholder="Enter system username"
+                placeholder="Enter client username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full bg-slate-100/50 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-850 rounded-xl pl-11 pr-4 py-3 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 text-sm transition-all"
+                className="w-full bg-slate-100/50 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-800 rounded-xl pl-11 pr-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 text-sm transition-all"
               />
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Password</label>
+            <label className="text-[10px] font-extrabold text-slate-450 dark:text-slate-500 uppercase tracking-widest">Password</label>
             <div className="relative flex items-center">
-              <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-4 pointer-events-none" />
+              <Lock className="w-4 h-4 text-slate-450 dark:text-slate-500 absolute left-4 pointer-events-none" />
               <input
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Enter account password"
+                placeholder="Enter portal password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full bg-slate-100/50 dark:bg-slate-955/70 border border-slate-300 dark:border-slate-850 rounded-xl pl-11 pr-11 py-3 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 text-sm transition-all"
+                className="w-full bg-slate-100/50 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-800 rounded-xl pl-11 pr-11 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 text-sm transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 text-slate-400 hover:text-slate-605 dark:hover:text-white transition-colors"
+                className="absolute right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -141,19 +141,19 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-violet-500/10 text-sm active:scale-[0.99] flex items-center justify-center gap-2"
+            className="w-full bg-violet-605 hover:bg-violet-500 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-violet-505/10 text-sm active:scale-[0.99] flex items-center justify-center gap-2"
           >
-            {loading ? 'Authenticating...' : 'Secure Sign In'}
+            {loading ? 'Authenticating...' : 'Sign In To Portal'}
           </button>
         </form>
 
         <div className="pt-4 border-t border-slate-200 dark:border-slate-800/80 text-center">
           <Link
-            href="/client-login"
+            href="/login"
             className="text-xs text-violet-600 dark:text-violet-400 hover:underline inline-flex items-center gap-1.5"
           >
-            <span>Are you a client? Sign in to Portal here</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Are you a staff member? Sign in here</span>
           </Link>
         </div>
       </div>

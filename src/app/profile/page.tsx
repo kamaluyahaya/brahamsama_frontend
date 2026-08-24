@@ -97,14 +97,18 @@ export default function ProfilePage() {
           <div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-violet-500" />
-              <span>Officer Profile Details</span>
+              <span>{currentUser.role === 'Client' ? 'Client Profile Details' : 'Officer Profile Details'}</span>
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Credentials assigned by System Administrator</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              {currentUser.role === 'Client' ? 'Your client profile registered on the system' : 'Credentials assigned by System Administrator'}
+            </p>
           </div>
 
           <div className="space-y-4 text-sm">
             <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800/50">
-              <span className="font-semibold text-slate-550 dark:text-slate-400">Full Staff Name:</span>
+              <span className="font-semibold text-slate-550 dark:text-slate-400">
+                {currentUser.role === 'Client' ? 'Client Name:' : 'Full Staff Name:'}
+              </span>
               <strong className="text-slate-900 dark:text-white">{currentUser.name}</strong>
             </div>
             <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800/50">
@@ -113,9 +117,13 @@ export default function ProfilePage() {
             </div>
             <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800/50">
               <span className="font-semibold text-slate-550 dark:text-slate-400">Access Level Role:</span>
-              <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-xs font-bold border ${currentUser.role === 'Admin' 
-                ? 'bg-violet-500/10 text-violet-605 dark:text-violet-400 border-violet-500/20' 
-                : 'bg-cyan-500/10 text-cyan-605 dark:text-cyan-400 border-cyan-500/20'}`}>
+              <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-xs font-bold border ${
+                currentUser.role === 'Admin' 
+                  ? 'bg-violet-500/10 text-violet-605 dark:text-violet-400 border-violet-500/20' 
+                  : currentUser.role === 'Client'
+                    ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20'
+                    : 'bg-cyan-500/10 text-cyan-605 dark:text-cyan-400 border-cyan-500/20'
+              }`}>
                 {currentUser.role.toUpperCase()}
               </span>
             </div>
