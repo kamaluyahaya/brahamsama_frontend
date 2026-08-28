@@ -48,15 +48,11 @@ interface Raider {
   guarantor_name: string;
   guarantor_phone: string;
   guarantor_gov_id: string;
-  chassis: string;
   tempo_reg_no: string;
-  engine_no: string;
   plate_no: string;
   date_of_purchase: string;
-  date_of_resell: string;
   duration_of_completion: string;
   amount: number;
-  receipt_no: string;
   passport_url?: string;
   surety_name?: string | null;
   surety_phone?: string | null;
@@ -72,6 +68,7 @@ export default function RaidersPage() {
   const [raiders, setRaiders] = useState<Raider[]>([]);
   const [managers, setManagers] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
+  const [availableVehicles, setAvailableVehicles] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
@@ -88,7 +85,12 @@ export default function RaidersPage() {
     if (!showAddModal) {
       setStep(1);
       setPassportPreview(null);
+      return;
     }
+    fetch('/api/raiders/available-vehicles')
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setAvailableVehicles(data))
+      .catch(err => console.error('Error fetching available vehicles:', err));
   }, [showAddModal]);
 
   const steps = [
@@ -103,24 +105,21 @@ export default function RaidersPage() {
     name: '',
     phone: '',
     address: '',
-    date_of_appointment: '',
+    date_of_appointment: new Date().toISOString().split('T')[0],
     govt_id: '',
     guarantor_name: '',
     guarantor_phone: '',
     guarantor_gov_id: '',
-    chassis: '',
     tempo_reg_no: '',
-    engine_no: '',
     plate_no: '',
     date_of_purchase: '',
-    date_of_resell: '',
     duration_of_completion: '',
     amount: '',
-    receipt_no: '',
     surety_name: '',
     surety_phone: '',
     md_leader_id: '',
     client_id: '',
+    client_motorcycle_id: '',
   });
 
   const [passportFile, setPassportFile] = useState<File | null>(null);
@@ -210,6 +209,16 @@ export default function RaidersPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleVehicleSelect = (value: string) => {
+    const vehicle = availableVehicles.find(v => v.id.toString() === value);
+    setFormData(prev => ({
+      ...prev,
+      client_motorcycle_id: value,
+      date_of_purchase: vehicle?.date_of_purchase || prev.date_of_purchase,
+      amount: vehicle?.total_disbursed_amount ? String(vehicle.total_disbursed_amount) : prev.amount,
+    }));
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -265,24 +274,21 @@ export default function RaidersPage() {
           name: '',
           phone: '',
           address: '',
-          date_of_appointment: '',
+          date_of_appointment: new Date().toISOString().split('T')[0],
           govt_id: '',
           guarantor_name: '',
           guarantor_phone: '',
           guarantor_gov_id: '',
-          chassis: '',
           tempo_reg_no: '',
-          engine_no: '',
           plate_no: '',
           date_of_purchase: '',
-          date_of_resell: '',
           duration_of_completion: '',
           amount: '',
-          receipt_no: '',
           surety_name: '',
           surety_phone: '',
           md_leader_id: '',
           client_id: '',
+          client_motorcycle_id: '',
         });
         setPassportFile(null);
         setPassportPreview(null);
@@ -371,7 +377,6 @@ export default function RaidersPage() {
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Phone</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Plate No</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tempo Reg No</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Chassis</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Appointment Date</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -400,7 +405,6 @@ export default function RaidersPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{raider.tempo_reg_no || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{raider.chassis || 'N/A'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{raider.date_of_appointment || 'N/A'}</td>
                     <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <button
@@ -609,37 +613,47 @@ export default function RaidersPage() {
               {step === 3 && (
                 <div className="space-y-4">
                   <h4 className="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider mb-2">3. Vehicle Specifications & Asset Finance</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Chassis Serial No</label>
-                      <input type="text" name="chassis" value={formData.chassis} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-sm" placeholder="Chassis No" />
-                    </div>
+
+                  <div className="bg-slate-50 dark:bg-slate-955/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      Select Available Client Vehicle *
+                    </label>
+                    <select
+                      name="client_motorcycle_id"
+                      value={formData.client_motorcycle_id}
+                      onChange={(e) => handleVehicleSelect(e.target.value)}
+                      className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-sm"
+                    >
+                      <option value="">-- Choose unassigned vehicle --</option>
+                      {availableVehicles.map(v => (
+                        <option key={v.id} value={v.id}>
+                          {v.client_name || 'Client'} &bull; {v.file_no || 'No File'} &bull; {v.vehicle_type_chassis || 'N/A'}
+                        </option>
+                      ))}
+                    </select>
+                    {availableVehicles.length === 0 && (
+                      <p className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+                        No unassigned client vehicles available. Assign a tricycle to a client first.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">TEMPO REG NO</label>
                       <input type="text" name="tempo_reg_no" value={formData.tempo_reg_no} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-505/50 text-sm" placeholder="Tempo Reg No" />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Engine Serial No</label>
-                      <input type="text" name="engine_no" value={formData.engine_no} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-505/50 text-sm" placeholder="Engine No" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">PLATE REG NO</label>
                       <input type="text" name="plate_no" value={formData.plate_no} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-sm" placeholder="Plate Number" />
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Date of Purchase</label>
                       <input type="date" name="date_of_purchase" value={formData.date_of_purchase} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-505/50 text-sm" />
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase">Date of Resell</label>
-                      <input type="date" name="date_of_resell" value={formData.date_of_resell} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-505/50 text-sm" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Duration of Completion</label>
                       <input type="date" name="duration_of_completion" value={formData.duration_of_completion} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-sm" />
@@ -656,13 +670,12 @@ export default function RaidersPage() {
                         );
                       })()}
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Asset Cost / Amount (₦)</label>
                       <input type="number" name="amount" value={formData.amount} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-sm" placeholder="e.g. 850000" />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase">Receipt Number</label>
-                      <input type="text" name="receipt_no" value={formData.receipt_no} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-sm" placeholder="Initial Receipt No" />
                     </div>
                   </div>
                 </div>
@@ -717,15 +730,12 @@ export default function RaidersPage() {
                       <div>
                         <h5 className="text-[10px] font-bold text-cyan-600 dark:text-cyan-455 uppercase tracking-wider mb-2">Vehicle Specifications & Asset Finance</h5>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1.5 text-xs">
-                          <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Chassis No:</span> <span className="font-bold text-slate-700 dark:text-white">{formData.chassis || 'N/A'}</span></div>
                           <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Tempo Reg:</span> <span className="font-bold text-slate-700 dark:text-white">{formData.tempo_reg_no || 'N/A'}</span></div>
-                          <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Engine No:</span> <span className="font-bold text-slate-700 dark:text-white">{formData.engine_no || 'N/A'}</span></div>
                           <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Plate Reg:</span> <span className="font-bold text-slate-700 dark:text-white">{formData.plate_no || 'N/A'}</span></div>
                           <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Purchase Date:</span> <span className="font-bold text-slate-700 dark:text-white">{formData.date_of_purchase || 'N/A'}</span></div>
-                          <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Resell Date:</span> <span className="font-bold text-slate-700 dark:text-white">{formData.date_of_resell || 'N/A'}</span></div>
                           <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Duration:</span> <span className="font-bold text-slate-700 dark:text-white">{formData.duration_of_completion || 'N/A'}</span></div>
                           <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Asset Cost:</span> <span className="font-bold text-emerald-600 dark:text-emerald-400">₦{formData.amount ? Number(formData.amount).toLocaleString() : 'N/A'}</span></div>
-                          <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Receipt No:</span> <span className="font-bold text-slate-700 dark:text-white">{formData.receipt_no || 'N/A'}</span></div>
+                          <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Source Vehicle:</span> <span className="font-bold text-slate-700 dark:text-white">{availableVehicles.find(v => v.id.toString() === formData.client_motorcycle_id)?.file_no || 'Manual entry'}</span></div>
                         </div>
                       </div>
                     </div>
@@ -853,14 +863,10 @@ export default function RaidersPage() {
                       <span>Asset Specifications</span>
                     </h4>
                     <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Plate Number:</strong> {selectedRaider.plate_no || 'N/A'}</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Chassis Serial:</strong> {selectedRaider.chassis || 'N/A'}</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Engine Serial:</strong> {selectedRaider.engine_no || 'N/A'}</p>
                     <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Tempo Reg:</strong> {selectedRaider.tempo_reg_no || 'N/A'}</p>
                     <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Purchase Date:</strong> {selectedRaider.date_of_purchase || 'N/A'}</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Resell Date:</strong> {selectedRaider.date_of_resell || 'N/A'}</p>
                     <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Contract Terms:</strong> {selectedRaider.duration_of_completion || 'N/A'}</p>
                     <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Asset Cost:</strong> ₦{selectedRaider.amount ? selectedRaider.amount.toLocaleString() : 'N/A'}</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Receipt Details:</strong> {selectedRaider.receipt_no || 'N/A'}</p>
                   </div>
                 </div>
 
@@ -958,15 +964,11 @@ export default function RaidersPage() {
                 { label: 'Guarantor Govt ID', value: selectedRaider.guarantor_gov_id },
                 { label: 'Shortee Surety Name', value: selectedRaider.surety_name },
                 { label: 'Shortee Surety Phone', value: selectedRaider.surety_phone },
-                { label: 'Chassis Serial No', value: selectedRaider.chassis },
                 { label: 'Tempo Registration No', value: selectedRaider.tempo_reg_no },
-                { label: 'Engine Serial No', value: selectedRaider.engine_no },
                 { label: 'Plate Registration No', value: selectedRaider.plate_no },
                 { label: 'Asset Purchase Date', value: selectedRaider.date_of_purchase },
-                { label: 'Asset Resell Date', value: selectedRaider.date_of_resell },
                 { label: 'Contract terms', value: selectedRaider.duration_of_completion },
                 { label: 'Asset Cost', value: selectedRaider.amount ? `₦${selectedRaider.amount.toLocaleString()}` : 'N/A' },
-                { label: 'Initial Receipt Details', value: selectedRaider.receipt_no },
               ]}
               tables={[
                 {

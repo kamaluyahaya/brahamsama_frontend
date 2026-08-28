@@ -17,6 +17,7 @@ export default function NewClientPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [raiders, setRaiders] = useState<any[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
   const [passportFile, setPassportFile] = useState<File | null>(null);
   const [passportPreview, setPassportPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,6 +29,7 @@ export default function NewClientPage() {
     email_address: '',
     residential_address: '',
     office: '',
+    branch_id: '',
     id_details: '',
     bank_name: '',
     account_name: '',
@@ -38,9 +40,9 @@ export default function NewClientPage() {
     final_disbursement: '',
     vehicle_type_chassis: '',
     no_of_motorcycles: '',
-    tempo_no: '',
+    chassis_no: '',
     total_disbursed_amount: '',
-    receipt_no: '',
+    utility_charges: '',
     duration_of_completion: '',
     username: '',
     password: '',
@@ -58,7 +60,19 @@ export default function NewClientPage() {
         console.error('Error fetching raiders:', err);
       }
     }
+    async function fetchBranches() {
+      try {
+        const res = await fetch('/api/branches');
+        if (res.ok) {
+          const data = await res.json();
+          setBranches(data);
+        }
+      } catch (err) {
+        console.error('Error fetching branches:', err);
+      }
+    }
     fetchRaiders();
+    fetchBranches();
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -79,11 +93,21 @@ export default function NewClientPage() {
   };
 
   const handleNext = () => {
-    if (step === 1 && !formData.name) {
-      alert('Client Name is required.');
-      return;
+    if (step === 1) {
+      if (!formData.name) {
+        alert('Client Name is required.');
+        return;
+      }
+      if (!formData.username) {
+        alert('Portal Username is required.');
+        return;
+      }
+      if (!formData.password) {
+        alert('Portal Password is required.');
+        return;
+      }
     }
-    if (step < 4) {
+    if (step < 3) {
       setStep(prev => prev + 1);
     }
   };
@@ -99,7 +123,7 @@ export default function NewClientPage() {
       return;
     }
 
-    if (step < 4) {
+    if (step < 3) {
       handleNext();
       return;
     }
@@ -137,8 +161,7 @@ export default function NewClientPage() {
   const steps = [
     { number: 1, name: 'Personal Profile', icon: User },
     { number: 2, name: 'Financial details', icon: CreditCard },
-    { number: 3, name: 'Asset & Finance', icon: Briefcase },
-    { number: 4, name: 'Preview & Confirm', icon: CheckCircle2 },
+    { number: 3, name: 'Preview & Confirm', icon: CheckCircle2 },
   ];
 
   return (
@@ -148,16 +171,16 @@ export default function NewClientPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/clients"
-            className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-200 rounded-xl transition-all"
+            className="bg-slate-100 dark:bg-slate-800 p-2 rounded-xl text-slate-650 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
             <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Log New Client Record</h2>
           </div>
         </div>
         <span className="text-xs font-semibold px-3 py-1 bg-violet-500/10 border border-violet-500/20 text-violet-600 dark:text-violet-400 rounded-lg">
-          Step {step} of 4
+          Step {step} of 3
         </span>
       </div>
 
@@ -173,10 +196,8 @@ export default function NewClientPage() {
               right: step === 1
                 ? 'calc(100% - 52px)'
                 : step === 2
-                  ? 'calc(66.6% - 20px)'
-                  : step === 3
-                    ? 'calc(33.3% - 20px)'
-                    : '52px',
+                  ? 'calc(50% - 20px)'
+                  : '52px',
             }}
           />
 
@@ -302,14 +323,17 @@ export default function NewClientPage() {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Office / Branch</label>
-                  <input
-                    type="text"
-                    name="office"
-                    value={formData.office}
+                  <select
+                    name="branch_id"
+                    value={formData.branch_id}
                     onChange={handleInputChange}
                     className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
-                    placeholder="e.g. Head Office"
-                  />
+                  >
+                    <option value="">Select a branch</option>
+                    {branches.map((branch) => (
+                      <option key={branch.id} value={branch.id}>{branch.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -327,23 +351,25 @@ export default function NewClientPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Portal Username (Optional)</label>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Portal Username *</label>
                   <input
                     type="text"
                     name="username"
                     value={formData.username}
                     onChange={handleInputChange}
+                    required
                     className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
                     placeholder="Configure login username"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Portal Password (Optional)</label>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Portal Password *</label>
                   <input
                     type="password"
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
+                    required
                     className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
                     placeholder="Configure login password"
                   />
@@ -396,143 +422,17 @@ export default function NewClientPage() {
             </div>
           )}
 
-          {/* STEP 3: Asset Details */}
+          {/* STEP 3: Preview & Confirmation */}
           {step === 3 && (
             <div className="space-y-6 animate-fadeIn">
               <div>
-                <h3 className="text-sm font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider mb-4">3. Purchase, Asset & Disbursement Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">File No</label>
-                    <input
-                      type="text"
-                      name="file_no"
-                      value={formData.file_no}
-                      onChange={handleInputChange}
-                      className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
-                      placeholder="e.g. BS/CL-409"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Vehicle Type / Chassis No</label>
-                    <input
-                      type="text"
-                      name="vehicle_type_chassis"
-                      value={formData.vehicle_type_chassis}
-                      onChange={handleInputChange}
-                      className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
-                      placeholder="e.g. Bajaj Boxer - CH492"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">No of Motorcycles</label>
-                    <input
-                      type="number"
-                      name="no_of_motorcycles"
-                      value={formData.no_of_motorcycles}
-                      onChange={handleInputChange}
-                      className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
-                      placeholder="e.g. 1"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Select Tempo No.</label>
-                  <select
-                    name="tempo_no"
-                    value={formData.tempo_no}
-                    onChange={handleInputChange}
-                    className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
-                  >
-                    <option value="">-- Choose Tempo --</option>
-                    {raiders.filter(r => r.tempo_reg_no).map(r => (
-                      <option key={r.id} value={r.tempo_reg_no}>{r.tempo_reg_no} ({r.name})</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Date of Purchase</label>
-                  <input
-                    type="date"
-                    name="date_of_purchase"
-                    value={formData.date_of_purchase}
-                    onChange={handleInputChange}
-                    className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-505/50 text-sm"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-505 dark:text-slate-400 uppercase">Duration of Completion</label>
-                  <input
-                    type="text"
-                    name="duration_of_completion"
-                    value={formData.duration_of_completion}
-                    onChange={handleInputChange}
-                    className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
-                    placeholder="e.g. 18 Months"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase">Date of First Disb.</label>
-                  <input
-                    type="date"
-                    name="date_of_first_disbursement"
-                    value={formData.date_of_first_disbursement}
-                    onChange={handleInputChange}
-                    className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-550/50 text-sm"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase">Date of Last Disb.</label>
-                  <input
-                    type="date"
-                    name="final_disbursement"
-                    value={formData.final_disbursement}
-                    onChange={handleInputChange}
-                    className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-550/50 text-sm"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Total Disbursed (₦)</label>
-                  <input
-                    type="number"
-                    name="total_disbursed_amount"
-                    value={formData.total_disbursed_amount}
-                    onChange={handleInputChange}
-                    className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
-                    placeholder="e.g. 500000"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Receipt No</label>
-                  <input
-                    type="text"
-                    name="receipt_no"
-                    value={formData.receipt_no}
-                    onChange={handleInputChange}
-                    className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
-                    placeholder="e.g. REC-1192"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-          {/* STEP 4: Preview & Confirmation */}
-          {step === 4 && (
-            <div className="space-y-6 animate-fadeIn">
-              <div>
-                <h3 className="text-sm font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider mb-2">4. Review & Confirm Details</h3>
+                <h3 className="text-sm font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider mb-2">3. Review & Confirm Details</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">Please review all information carefully before deploying the client record to the system.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Profile Card */}
-                <div className="bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-850 p-4 rounded-xl space-y-3">
+                <div className="bg-slate-50 dark:bg-slate-955/40 border border-slate-200 dark:border-slate-850 p-4 rounded-xl space-y-3">
                   <h4 className="text-xs font-bold text-violet-600 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-1 flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5" />
                     <span>Personal Profile</span>
@@ -553,7 +453,7 @@ export default function NewClientPage() {
                   </div>
                   <div className="text-xs space-y-1.5 pt-2 border-t border-slate-200 dark:border-slate-800">
                     <p><strong>Government ID:</strong> {formData.id_details || 'N/A'}</p>
-                    <p><strong>Office / Branch:</strong> {formData.office || 'N/A'}</p>
+                    <p><strong>Office / Branch:</strong> {branches.find(b => String(b.id) === String(formData.branch_id))?.name || 'N/A'}</p>
                     <p><strong>Residential Address:</strong> {formData.residential_address || 'N/A'}</p>
                   </div>
                 </div>
@@ -571,32 +471,6 @@ export default function NewClientPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Asset & Finance Card */}
-              <div className="bg-slate-50 dark:bg-slate-955/40 border border-slate-200 dark:border-slate-850 p-4 rounded-xl space-y-3">
-                <h4 className="text-xs font-bold text-violet-600 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-1 flex items-center gap-1.5">
-                  <Briefcase className="w-3.5 h-3.5" />
-                  <span>Asset purchase & Finance Details</span>
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                  <div className="space-y-1.5">
-                    <p><strong>File Number:</strong> {formData.file_no || 'N/A'}</p>
-                    <p><strong>Chassis / Vehicle:</strong> {formData.vehicle_type_chassis || 'N/A'}</p>
-                    <p><strong>No of Motorcycles:</strong> {formData.no_of_motorcycles || 'N/A'}</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <p><strong>Select Tempo No.:</strong> {formData.tempo_no || 'N/A'}</p>
-                    <p><strong>Date of Purchase:</strong> {formData.date_of_purchase || 'N/A'}</p>
-                    <p><strong>Contract Term:</strong> {formData.duration_of_completion || 'N/A'}</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <p><strong>First Disbursement:</strong> {formData.date_of_first_disbursement || 'N/A'}</p>
-                    <p><strong>Last Disbursement:</strong> {formData.final_disbursement || 'N/A'}</p>
-                    <p><strong>Total Disbursed:</strong> ₦{formData.total_disbursed_amount ? parseInt(formData.total_disbursed_amount).toLocaleString() : '0'}</p>
-                    <p><strong>Receipt Number:</strong> {formData.receipt_no || 'N/A'}</p>
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 
@@ -611,8 +485,9 @@ export default function NewClientPage() {
               <span>{step === 1 ? 'Cancel' : 'Previous Step'}</span>
             </button>
 
-            {step < 4 ? (
+            {step < 3 ? (
               <button
+                key="continue-btn"
                 type="button"
                 onClick={handleNext}
                 className="bg-violet-600 hover:bg-violet-500 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-1.5 shadow-md shadow-violet-500/10"
@@ -622,6 +497,7 @@ export default function NewClientPage() {
               </button>
             ) : (
               <button
+                key="submit-btn"
                 type="submit"
                 disabled={isSubmitting}
                 className="bg-violet-600 hover:bg-violet-500 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 shadow-md shadow-violet-500/10"

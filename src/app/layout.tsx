@@ -18,7 +18,9 @@ import {
   Menu,
   X,
   User,
-  UserCog
+  UserCog,
+  Building2,
+  Wallet
 } from 'lucide-react';
 import './globals.css';
 
@@ -88,8 +90,18 @@ export default function RootLayout({
 
     if (!authStatus && pathname !== '/login' && pathname !== '/client-login') {
       router.push('/login');
-    } else if (authStatus && parsedUser?.role === 'Client') {
-      const restrictedRoutes = ['/clients', '/md-leaders', '/staff', '/compliance', '/accounts', '/raiders'];
+    } else if (authStatus && (parsedUser?.role === 'Client' || parsedUser?.role === 'Manager')) {
+      const restrictedRoutes = ['/clients', '/md-leaders', '/staff', '/compliance', '/accounts', '/raiders', '/branches'];
+      if (restrictedRoutes.some(route => pathname.startsWith(route))) {
+        router.push('/');
+      }
+    } else if (authStatus && parsedUser?.role === 'Accountant') {
+      const restrictedRoutes = ['/clients', '/md-leaders', '/staff', '/compliance', '/raiders', '/branches'];
+      if (restrictedRoutes.some(route => pathname.startsWith(route))) {
+        router.push('/');
+      }
+    } else if (authStatus && parsedUser?.role === 'Staff') {
+      const restrictedRoutes = ['/accounts', '/staff', '/branches'];
       if (restrictedRoutes.some(route => pathname.startsWith(route))) {
         router.push('/');
       }
@@ -159,13 +171,40 @@ export default function RootLayout({
     subItems?: SubItem[];
   }
 
-  const isClient = currentUser?.role === 'Client';
+  const isRestrictedPortal = currentUser?.role === 'Client' || currentUser?.role === 'Manager';
+  const isAccountant = currentUser?.role === 'Accountant';
 
-  const navItems: NavItem[] = isClient ? [
+  const navItems: NavItem[] = isRestrictedPortal ? [
     {
       name: 'Dashboard',
       path: '/',
       icon: <LayoutDashboard className="w-5 h-5" />
+    },
+    {
+      name: 'Assets & Financial',
+      path: '/assets',
+      icon: <Wallet className="w-5 h-5" />
+    },
+    {
+      name: 'Profile & Settings',
+      path: '/profile',
+      icon: <User className="w-5 h-5" />
+    }
+  ] : isAccountant ? [
+    {
+      name: 'Dashboard',
+      path: '/',
+      icon: <LayoutDashboard className="w-5 h-5" />
+    },
+    {
+      name: 'Accounts Office',
+      path: '/accounts',
+      icon: <Briefcase className="w-5 h-5" />,
+      subItems: [
+        { name: 'Log Payment / Return', path: '/accounts?tab=returns' },
+        { name: 'Log Expense', path: '/accounts?tab=expenses' },
+        { name: 'Generate Financial Report', path: '/accounts?tab=reports' }
+      ]
     },
     {
       name: 'Profile & Settings',
@@ -202,16 +241,18 @@ export default function RootLayout({
         { name: 'Add M/D Leader', path: '/md-leaders?action=add' }
       ]
     },
-    {
-      name: 'Accounts Office',
-      path: '/accounts',
-      icon: <Briefcase className="w-5 h-5" />,
-      subItems: [
-        { name: 'Log Payment / Return', path: '/accounts?tab=returns' },
-        { name: 'Log Expense', path: '/accounts?tab=expenses' },
-        { name: 'Generate Financial Report', path: '/accounts?tab=reports' }
-      ]
-    },
+    ...(currentUser?.role === 'Admin' ? [
+      {
+        name: 'Accounts Office',
+        path: '/accounts',
+        icon: <Briefcase className="w-5 h-5" />,
+        subItems: [
+          { name: 'Log Payment / Return', path: '/accounts?tab=returns' },
+          { name: 'Log Expense', path: '/accounts?tab=expenses' },
+          { name: 'Generate Financial Report', path: '/accounts?tab=reports' }
+        ]
+      }
+    ] : []),
     {
       name: 'Compliance Logs',
       path: '/compliance',
@@ -225,6 +266,11 @@ export default function RootLayout({
         name: 'Staff Manager',
         path: '/staff',
         icon: <UserCog className="w-5 h-5" />
+      },
+      {
+        name: 'Branches',
+        path: '/branches',
+        icon: <Building2 className="w-5 h-5" />
       }
     ] : []),
     {

@@ -300,6 +300,7 @@ export default function StaffPage() {
                     <select name="role" value={formData.role} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-505/50 text-sm">
                       <option value="Staff">Staff (Standard Officer)</option>
                       <option value="Admin">Admin (Full Control)</option>
+                      <option value="Accountant">Accountant (Accounts Office & Profile only)</option>
                     </select>
                   </div>
                 </div>

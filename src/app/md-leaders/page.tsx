@@ -37,6 +37,8 @@ interface MDLeader {
   phone: string;
   tempo_account: string;
   reports: string;
+  username?: string;
+  password?: string;
   created_at?: string;
   payments?: Payment[];
   raiders?: AssignedRaider[];
@@ -60,8 +62,13 @@ export default function MDLeadersPage() {
     phone: '',
     tempo_account: '',
     reports: '',
+    username: '',
+    password: '',
   });
 
+  const [credUsername, setCredUsername] = useState('');
+  const [credPassword, setCredPassword] = useState('');
+  const [isUpdatingCreds, setIsUpdatingCreds] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -95,12 +102,46 @@ export default function MDLeadersPage() {
       if (res.ok) {
         const data = await res.json();
         setSelectedLeader(data);
+        setCredUsername(data.username || '');
+        setCredPassword('');
         setShowDetailModal(true);
       }
     } catch (err) {
       console.error('Error fetching leader details:', err);
     }
   }
+
+  const handleUpdateCredentials = async () => {
+    if (!selectedLeader) return;
+    setIsUpdatingCreds(true);
+    try {
+      const res = await fetch(`/api/md-leaders/${selectedLeader.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: credUsername,
+          password: credPassword || undefined,
+        }),
+      });
+
+      if (res.ok) {
+        alert('Manager credentials successfully updated!');
+        const detailsRes = await fetch(`/api/md-leaders/${selectedLeader.id}`);
+        if (detailsRes.ok) {
+          const detailsData = await detailsRes.json();
+          setSelectedLeader(detailsData);
+        }
+      } else {
+        const errData = await res.json();
+        alert('Error: ' + errData.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update credentials');
+    } finally {
+      setIsUpdatingCreds(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -126,6 +167,8 @@ export default function MDLeadersPage() {
           phone: '',
           tempo_account: '',
           reports: '',
+          username: '',
+          password: '',
         });
         fetchLeaders();
       } else {
@@ -272,6 +315,31 @@ export default function MDLeadersPage() {
                   <textarea name="reports" value={formData.reports} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" placeholder="Notes, reports or remarks regarding this delivery leader's squad" rows={4} />
                 </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Portal Username (Optional)</label>
+                    <input
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleInputChange}
+                      className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
+                      placeholder="Configure login username"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Portal Password (Optional)</label>
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
+                      placeholder="Configure login password"
+                    />
+                  </div>
+                </div>
+
                 <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-800 pt-6">
                   <button type="button" className="bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition-all" onClick={() => setShowAddModal(false)}>Cancel</button>
                   <button type="submit" className="bg-violet-600 hover:bg-violet-500 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2" disabled={isSubmitting}>
@@ -358,6 +426,42 @@ export default function MDLeadersPage() {
                     ))}
                   </div>
                 )}
+              </div>
+
+              <div className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-4">
+                <h4 className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5" />
+                  <span>Manager Portal Access Credentials</span>
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Username</label>
+                    <input
+                      type="text"
+                      value={credUsername}
+                      onChange={(e) => setCredUsername(e.target.value)}
+                      className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
+                      placeholder="Configure login username"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Password (Leave blank to keep current)</label>
+                    <input
+                      type="password"
+                      value={credPassword}
+                      onChange={(e) => setCredPassword(e.target.value)}
+                      className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
+                      placeholder="Configure login password"
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={handleUpdateCredentials}
+                  disabled={isUpdatingCreds}
+                  className="bg-violet-600 hover:bg-violet-500 text-white font-semibold text-xs px-4 py-2 rounded-xl transition-all shadow-md active:scale-95"
+                >
+                  {isUpdatingCreds ? 'Updating...' : 'Save Portal Credentials'}
+                </button>
               </div>
             </div>
 
