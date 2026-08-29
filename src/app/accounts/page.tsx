@@ -2,12 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { 
-  Briefcase, 
-  TrendingUp, 
-  TrendingDown, 
-  FileSpreadsheet, 
-  Trash2, 
+import {
+  Briefcase,
+  TrendingUp,
+  TrendingDown,
+  FileSpreadsheet,
+  Trash2,
   Calendar,
   BarChart3,
   Eye,
@@ -56,7 +56,7 @@ interface ReturnRecord {
 export default function AccountsPage() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'returns' | 'expenses' | 'reports'>('returns');
-  
+
   // Data lists
   const [raiders, setRaiders] = useState<Raider[]>([]);
   const [mdLeaders, setMDLeaders] = useState<MDLeader[]>([]);
@@ -64,7 +64,7 @@ export default function AccountsPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [staffList, setStaffList] = useState<any[]>([]);
-  
+
   // Loading states
   const [loading, setLoading] = useState(true);
 
@@ -101,7 +101,7 @@ export default function AccountsPage() {
   // Modal State
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportPreviewTitle, setReportPreviewTitle] = useState('');
-  const [reportPreviewFields, setReportPreviewFields] = useState<{label: string, value: any}[]>([]);
+  const [reportPreviewFields, setReportPreviewFields] = useState<{ label: string, value: any }[]>([]);
   const [reportPreviewTables, setReportPreviewTables] = useState<any[]>([]);
 
   const openReturnVoucher = (item: ReturnRecord) => {
@@ -111,7 +111,7 @@ export default function AccountsPage() {
       { label: 'Payee Type', value: item.raider_id ? 'Raider (Motorcyclist)' : item.md_leader_id ? 'Manager' : 'General Inflow' },
       { label: 'Inflow Date', value: item.date },
       { label: 'Receipt Number', value: item.receipt_no || 'N/A' },
-      { label: 'Return Amount', value: `₦${item.amount.toLocaleString()}` },
+      { label: 'Return Amount', value: `₦${parseFloat(item.amount as any || 0).toLocaleString()}` },
       { label: 'Remarks / Comments', value: item.comments || 'None' },
     ]);
     setReportPreviewTables([]);
@@ -124,7 +124,7 @@ export default function AccountsPage() {
       { label: 'Voucher Description', value: item.description || 'General Outflow' },
       { label: 'Expense Category', value: item.category },
       { label: 'Outflow Date', value: item.date },
-      { label: 'Disbursed Amount', value: `₦${item.amount.toLocaleString()}` },
+      { label: 'Disbursed Amount', value: `₦${parseFloat(item.amount || 0).toLocaleString()}` },
       { label: 'Beneficiary Client', value: item.client_name || 'None (General Office Expense)' },
       { label: 'Logged Officer (Staff)', value: item.staff_name || item.recorded_by || 'System' },
     ]);
@@ -141,7 +141,7 @@ export default function AccountsPage() {
       { label: 'Total Outflows (Expenses)', value: `₦${reportData.summary.totalExpenses.toLocaleString()}` },
       { label: 'Net Income / Balance', value: `${reportData.summary.netIncome >= 0 ? '' : '-'}₦${Math.abs(reportData.summary.netIncome).toLocaleString()}` },
     ]);
-    
+
     const categoryRows = reportData.expensesByCategory.map((c: any) => {
       const percent = reportData.summary.totalExpenses ? (c.total / reportData.summary.totalExpenses) * 100 : 0;
       return [c.category, `₦${c.total.toLocaleString()}`, `${percent.toFixed(1)}%`];
@@ -181,12 +181,12 @@ export default function AccountsPage() {
     setShowReportModal(true);
   };
 
-  const selectedRaiderObj = returnForm.payeeType === 'raider' && returnForm.raider_id 
-    ? raiders.find(r => r.id === parseInt(returnForm.raider_id)) 
+  const selectedRaiderObj = returnForm.payeeType === 'raider' && returnForm.raider_id
+    ? raiders.find(r => r.id === parseInt(returnForm.raider_id))
     : null;
 
-  const selectedManagerObj = returnForm.payeeType === 'md' && returnForm.md_leader_id 
-    ? mdLeaders.find(m => m.id === parseInt(returnForm.md_leader_id)) 
+  const selectedManagerObj = returnForm.payeeType === 'md' && returnForm.md_leader_id
+    ? mdLeaders.find(m => m.id === parseInt(returnForm.md_leader_id))
     : null;
 
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -379,23 +379,21 @@ export default function AccountsPage() {
       <div className="flex gap-2 border-b border-slate-200 dark:border-slate-800 pb-px">
         <button
           onClick={() => setActiveTab('returns')}
-          className={`px-4 py-2.5 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 ${
-            activeTab === 'returns' 
-              ? 'border-violet-500 text-slate-800 dark:text-white bg-violet-500/10' 
+          className={`px-4 py-2.5 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 ${activeTab === 'returns'
+              ? 'border-violet-500 text-slate-800 dark:text-white bg-violet-500/10'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-          }`}
+            }`}
         >
           <TrendingUp className="w-4 h-4 text-emerald-500" />
           <span>Raider Returns (Inflows)</span>
         </button>
-        
+
         <button
           onClick={() => setActiveTab('expenses')}
-          className={`px-4 py-2.5 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 ${
-            activeTab === 'expenses' 
-              ? 'border-violet-500 text-slate-800 dark:text-white bg-violet-500/10' 
+          className={`px-4 py-2.5 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 ${activeTab === 'expenses'
+              ? 'border-violet-500 text-slate-800 dark:text-white bg-violet-500/10'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-          }`}
+            }`}
         >
           <TrendingDown className="w-4 h-4 text-rose-500" />
           <span>Expenses Logs (Outflows)</span>
@@ -403,11 +401,10 @@ export default function AccountsPage() {
 
         <button
           onClick={() => setActiveTab('reports')}
-          className={`px-4 py-2.5 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 ${
-            activeTab === 'reports' 
-              ? 'border-violet-500 text-slate-800 dark:text-white bg-violet-500/10' 
+          className={`px-4 py-2.5 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 ${activeTab === 'reports'
+              ? 'border-violet-500 text-slate-800 dark:text-white bg-violet-500/10'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-          }`}
+            }`}
         >
           <FileSpreadsheet className="w-4 h-4 text-cyan-500" />
           <span>Generate Reports Summary</span>
@@ -423,7 +420,7 @@ export default function AccountsPage() {
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Log Raider Return Payment</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Log payment collected from the field</p>
             </div>
-            
+
             <form onSubmit={handleReturnSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
@@ -533,16 +530,16 @@ export default function AccountsPage() {
                         <td className="px-4 py-3 font-bold text-slate-800 dark:text-white">{item.raider_name || item.md_leader_name || 'General Inflow'}</td>
                         <td className="px-4 py-3 text-slate-650 dark:text-slate-305">{item.date}</td>
                         <td className="px-4 py-3 text-slate-655 dark:text-slate-305">{item.receipt_no || 'N/A'}</td>
-                        <td className="px-4 py-3 text-emerald-605 dark:text-emerald-400 font-bold">₦{item.amount.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-emerald-605 dark:text-emerald-400 font-bold">₦{parseFloat(item.amount as any || 0).toLocaleString()}</td>
                         <td className="px-4 py-3 flex items-center gap-1.5">
-                          <button 
+                          <button
                             className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white text-xs font-semibold p-1.5 rounded-lg border border-slate-300 dark:border-slate-700 transition-all"
                             onClick={() => openReturnVoucher(item)}
                             title="Print Voucher / Receipt"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button 
+                          <button
                             className="bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white text-xs font-semibold p-1.5 rounded-lg border border-rose-500/20 transition-all"
                             onClick={() => deleteReturn(item.id)}
                           >
@@ -568,7 +565,7 @@ export default function AccountsPage() {
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Log Office Expense</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Log cash paid out for operations</p>
             </div>
-            
+
             <form onSubmit={handleExpenseSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
@@ -660,16 +657,16 @@ export default function AccountsPage() {
                         <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-xs">
                           {item.staff_name || item.recorded_by || 'System'}
                         </td>
-                        <td className="px-4 py-3 text-rose-600 dark:text-rose-400 font-bold">₦{item.amount.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-rose-600 dark:text-rose-400 font-bold">₦{parseFloat(item.amount as any || 0).toLocaleString()}</td>
                         <td className="px-4 py-3 flex items-center gap-1.5">
-                          <button 
+                          <button
                             className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white text-xs font-semibold p-1.5 rounded-lg border border-slate-300 dark:border-slate-700 transition-all"
                             onClick={() => openExpenseVoucher(item)}
                             title="Print Voucher / Voucher Receipt"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button 
+                          <button
                             className="bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white text-xs font-semibold p-1.5 rounded-lg border border-rose-500/20 transition-all"
                             onClick={() => deleteExpense(item.id)}
                           >
@@ -695,7 +692,7 @@ export default function AccountsPage() {
               <FileSpreadsheet className="w-5 h-5 text-violet-500" />
               <span>Generate Financial Report Summary</span>
             </h3>
-            
+
             <form onSubmit={generateFinancialReport} className="flex gap-4 items-end flex-wrap">
               <div className="flex flex-col gap-1.5 flex-1 min-w-[200px]">
                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Start Date</label>
@@ -736,7 +733,7 @@ export default function AccountsPage() {
                   <div className="text-xs font-semibold uppercase tracking-wider text-slate-505 dark:text-slate-400">Period Inflows (Returns)</div>
                   <div className="text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400 mt-2">₦{reportData.summary.totalReturns.toLocaleString()}</div>
                 </div>
-                
+
                 <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 border-t-4 border-t-rose-500 rounded-2xl p-6 text-center shadow-sm">
                   <div className="text-xs font-semibold uppercase tracking-wider text-slate-505 dark:text-slate-400">Period Outflows (Expenses)</div>
                   <div className="text-3xl font-extrabold tracking-tight text-rose-600 dark:text-rose-400 mt-2">₦{reportData.summary.totalExpenses.toLocaleString()}</div>
