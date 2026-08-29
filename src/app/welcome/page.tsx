@@ -78,12 +78,30 @@ export default function WelcomePage() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [animating, setAnimating] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
+    setMounted(true);
     const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+
+    // Intersection Observer for scroll animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    const reveals = document.querySelectorAll('.reveal');
+    reveals.forEach(el => observer.observe(el));
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      observer.disconnect();
+    };
   }, []);
 
   const slideTo = (idx: number) => {
@@ -107,14 +125,20 @@ export default function WelcomePage() {
   const scrollTo = (id: string) => {
     setMobileOpen(false);
     const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (el) {
+      const offsetTop = el.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({
+        top: offsetTop,
+        behavior: 'smooth'
+      });
+    }
   };
 
   const slide = SLIDES[current];
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ fontFamily: "'Inter', sans-serif", background: 'var(--w-bg-base)', color: 'var(--w-text-primary)' }}>
-      <style>{`
+      {mounted && <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
         /* ── LIGHT MODE TOKENS ── */
@@ -192,7 +216,18 @@ export default function WelcomePage() {
         ::-webkit-scrollbar{width:5px}
         ::-webkit-scrollbar-track{background:var(--w-scrollbar-track)}
         ::-webkit-scrollbar-thumb{background:#c9a84c;border-radius:3px}
-      `}</style>
+
+        /* Scroll Animation CSS */
+        .reveal {
+          opacity: 0;
+          transform: translateY(30px);
+          transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      `}</style>}
 
       {/* NAVBAR */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, transition: 'all 0.4s', background: scrolled ? 'var(--w-nav-bg)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none', borderBottom: scrolled ? '1px solid var(--w-nav-border)' : 'none' }}>
@@ -279,7 +314,7 @@ export default function WelcomePage() {
 
 
       {/* ABOUT */}
-      <section id="about" style={{ padding: '96px 40px', background: 'var(--w-bg-base)' }}>
+      <section id="about" className="reveal" style={{ padding: '96px 40px', background: 'var(--w-bg-base)' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', gap: 64, alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 380px' }}>
             <div style={{ background: 'var(--w-card-bg)', border: '1px solid var(--w-border)', borderRadius: 24, padding: 40, boxShadow: '0 25px 60px rgba(0,0,0,0.12)', position: 'relative', overflow: 'hidden' }}>
@@ -321,7 +356,7 @@ export default function WelcomePage() {
       </section>
 
       {/* SERVICES */}
-      <section id="services" style={{ padding: '96px 40px', background: 'var(--w-bg-section1)' }}>
+      <section id="services" className="reveal" style={{ padding: '96px 40px', background: 'var(--w-bg-section1)' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--w-badge-bg)', border: '1px solid var(--w-badge-border)', color: '#fbbf24', fontSize: 11, fontWeight: 700, padding: '6px 16px', borderRadius: 99, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 2 }}>
@@ -343,7 +378,7 @@ export default function WelcomePage() {
       </section>
 
       {/* SUCCESS STORIES */}
-      <section id="success-stories" style={{ padding: '96px 40px', background: 'var(--w-bg-base)' }}>
+      <section id="success-stories" className="reveal" style={{ padding: '96px 40px', background: 'var(--w-bg-base)' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--w-badge-bg)', border: '1px solid var(--w-badge-border)', color: '#fbbf24', fontSize: 11, fontWeight: 700, padding: '6px 16px', borderRadius: 99, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 2 }}>
@@ -373,7 +408,7 @@ export default function WelcomePage() {
       </section>
 
       {/* TEAM */}
-      <section id="team" style={{ padding: '96px 40px', background: 'var(--w-bg-section1)' }}>
+      <section id="team" className="reveal" style={{ padding: '96px 40px', background: 'var(--w-bg-section1)' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--w-badge-bg)', border: '1px solid var(--w-badge-border)', color: '#fbbf24', fontSize: 11, fontWeight: 700, padding: '6px 16px', borderRadius: 99, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 2 }}>
@@ -396,7 +431,7 @@ export default function WelcomePage() {
       </section>
 
       {/* YEARS OF WORK MILESTONE BANNER */}
-      <section style={{ padding: '80px 40px', background: 'linear-gradient(135deg, #d97706, #f59e0b, #d97706)', position: 'relative', overflow: 'hidden' }}>
+      <section className="reveal" style={{ padding: '80px 40px', background: 'linear-gradient(135deg, #d97706, #f59e0b, #d97706)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.12) 0%, transparent 70%)' }} />
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         <div style={{ position: 'relative', maxWidth: 1280, margin: '0 auto', textAlign: 'center' }}>
@@ -414,7 +449,7 @@ export default function WelcomePage() {
       </section>
 
       {/* CONTACT */}
-      <section id="contact" style={{ padding: '96px 40px', background: 'var(--w-bg-section2)' }}>
+      <section id="contact" className="reveal" style={{ padding: '96px 40px', background: 'var(--w-bg-section2)' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
             <div style={{ display: 'inline-flex', gap: 8, background: 'var(--w-badge-bg)', border: '1px solid var(--w-badge-border)', color: '#fbbf24', fontSize: 11, fontWeight: 700, padding: '6px 16px', borderRadius: 99, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 2 }}>
@@ -479,7 +514,7 @@ export default function WelcomePage() {
       </section>
 
       {/* MANAGEMENT LOGIN CTA */}
-      <section style={{ padding: '80px 40px', background: 'var(--w-bg-section1)', borderTop: '1px solid var(--w-border)' }}>
+      <section className="reveal" style={{ padding: '80px 40px', background: 'var(--w-bg-section1)', borderTop: '1px solid var(--w-border)' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
           <div style={{ background: 'var(--w-card-bg)', border: '1px solid rgba(196,168,76,0.2)', borderRadius: 28, padding: 60, position: 'relative', overflow: 'hidden', boxShadow: '0 40px 80px rgba(0,0,0,0.1)' }}>
             <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at top, rgba(196,168,76,0.05) 0%, transparent 60%)' }} />
