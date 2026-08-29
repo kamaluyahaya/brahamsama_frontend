@@ -68,7 +68,7 @@ export default function ClientLoginPage() {
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-955 dark:text-slate-105 flex flex-col justify-center items-center p-4 relative overflow-hidden transition-colors duration-300 font-sans">
 
       {/* Decorative Blur Spheres for Premium Glassmorphic Contrast */}
-      <div className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full bg-violet-600/10 dark:bg-violet-600/10 blur-[100px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full bg-blue-600/10 dark:bg-blue-600/10 blur-[100px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-cyan-600/10 dark:bg-cyan-600/10 blur-[120px] pointer-events-none" />
 
       <div className="w-full max-w-md bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/85 p-8 rounded-2xl shadow-2xl relative space-y-8 backdrop-blur-xl transition-all duration-300 hover:border-slate-300 dark:hover:border-slate-800">
@@ -83,7 +83,7 @@ export default function ClientLoginPage() {
               (e.target as HTMLElement).style.display = 'none';
             }}
           />
-          <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 dark:from-white dark:via-slate-200 dark:to-violet-405 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 dark:from-white dark:via-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
             Client Portal
           </h1>
           <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-1">
@@ -111,7 +111,7 @@ export default function ClientLoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full bg-slate-100/50 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-800 rounded-xl pl-11 pr-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 text-sm transition-all"
+                className="w-full bg-slate-100/50 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-800 rounded-xl pl-11 pr-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-800/50 focus:border-blue-800 text-sm transition-all"
               />
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function ClientLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full bg-slate-100/50 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-800 rounded-xl pl-11 pr-11 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 text-sm transition-all"
+                className="w-full bg-slate-100/50 dark:bg-slate-950/70 border border-slate-300 dark:border-slate-800 rounded-xl pl-11 pr-11 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-800/50 focus:border-blue-800 text-sm transition-all"
               />
               <button
                 type="button"
@@ -141,7 +141,7 @@ export default function ClientLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-violet-605 hover:bg-violet-500 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-violet-505/10 text-sm active:scale-[0.99] flex items-center justify-center gap-2"
+            className="w-full bg-blue-800 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-blue-800/10 text-sm active:scale-[0.99] flex items-center justify-center gap-2"
           >
             {loading ? 'Authenticating...' : 'Sign In To Portal'}
           </button>
@@ -150,7 +150,7 @@ export default function ClientLoginPage() {
         <div className="pt-4 border-t border-slate-200 dark:border-slate-800/80 text-center">
           <Link
             href="/login"
-            className="text-xs text-violet-600 dark:text-violet-400 hover:underline inline-flex items-center gap-1.5"
+            className="text-xs text-blue-700 dark:text-blue-400 hover:underline inline-flex items-center gap-1.5"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Are you a staff member? Sign in here</span>

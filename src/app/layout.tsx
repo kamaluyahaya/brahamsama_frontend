@@ -20,7 +20,8 @@ import {
   User,
   UserCog,
   Building2,
-  Wallet
+  Wallet,
+  MessageSquare
 } from 'lucide-react';
 import './globals.css';
 
@@ -271,6 +272,11 @@ export default function RootLayout({
         name: 'Branches',
         path: '/branches',
         icon: <Building2 className="w-5 h-5" />
+      },
+      {
+        name: 'Messages',
+        path: '/messages',
+        icon: <MessageSquare className="w-5 h-5" />
       }
     ] : []),
     {

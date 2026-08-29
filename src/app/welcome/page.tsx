@@ -80,6 +80,48 @@ export default function WelcomePage() {
   const [scrolled, setScrolled] = useState(false);
   const [animating, setAnimating] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [contactName, setContactName] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+  const [submitStatus, setSubmitStatus] = useState<{ type: 'success' | 'error' | null; text: string }>({ type: null, text: '' });
+  const [loading, setLoading] = useState(false);
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactName.trim() || !contactMessage.trim()) {
+      setSubmitStatus({ type: 'error', text: 'Name and message are required fields.' });
+      return;
+    }
+    setLoading(true);
+    setSubmitStatus({ type: null, text: '' });
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: contactName,
+          phone: contactPhone,
+          email: contactEmail,
+          message: contactMessage
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSubmitStatus({ type: 'success', text: 'Message sent successfully! We will get back to you shortly.' });
+        setContactName('');
+        setContactPhone('');
+        setContactEmail('');
+        setContactMessage('');
+      } else {
+        setSubmitStatus({ type: 'error', text: data.message || 'Something went wrong. Please try again.' });
+      }
+    } catch (err) {
+      setSubmitStatus({ type: 'error', text: 'Failed to connect to the server. Please try again later.' });
+    } finally {
+      setLoading(false);
+    }
+  };
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -245,7 +287,9 @@ export default function WelcomePage() {
           >
             <div style={{ background: 'var(--w-card-bg)', border: '1px solid var(--w-border)', borderRadius: 24, padding: 40, boxShadow: '0 25px 60px rgba(0,0,0,0.12)', position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: 20, right: 20, width: 80, height: 80, background: 'rgba(196,168,76,0.08)', borderRadius: '50%', filter: 'blur(20px)' }} />
-              <div className="float" style={{ fontSize: 90, textAlign: 'center', marginBottom: 24 }}>🏢</div>
+              <div className="float" style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+                <img src="/logo.jpeg" alt="Braham Sama" style={{ width: 96, height: 96, borderRadius: 24, objectFit: 'cover' }} />
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 {[['Founded', '2019'], ['Headquarters', 'Kaduna State'], ['RC Number', '7121543'], ['Branches', '3 Offices']].map(([l, v]) => (
                   <div key={l} style={{ background: 'var(--w-bg-card)', border: '1px solid var(--w-border)', borderRadius: 14, padding: '14px 16px' }}>
@@ -471,16 +515,6 @@ export default function WelcomePage() {
                   </div>
                 </div>
               ))}
-              <div style={{ marginTop: 20 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, color: 'var(--w-text-muted)', marginBottom: 14 }}>Follow Us</div>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
-                    <button key={i} style={{ padding: 12, background: 'var(--w-bg-card)', border: '1px solid var(--w-border)', color: 'var(--w-text-muted)', borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center' }} onMouseEnter={e => { (e.currentTarget as any).style.color = '#f59e0b'; (e.currentTarget as any).style.borderColor = 'rgba(196,168,76,0.4)'; }} onMouseLeave={e => { (e.currentTarget as any).style.color = 'var(--w-text-muted)'; (e.currentTarget as any).style.borderColor = 'var(--w-border)'; }}>
-                      <Icon size={18} />
-                    </button>
-                  ))}
-                </div>
-              </div>
             </motion.div>
 
             {/* Form */}
@@ -492,58 +526,37 @@ export default function WelcomePage() {
               style={{ background: 'var(--w-bg-card)', border: '1px solid var(--w-border)', borderRadius: 20, padding: 32 }}
             >
               <h3 style={{ fontWeight: 800, color: 'var(--w-text-primary)', fontSize: 20, marginBottom: 24 }}>Send us a message</h3>
-              <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <form onSubmit={handleContactSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  {['Full Name', 'Phone Number'].map(ph => (
-                    <div key={ph}>
-                      <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, color: 'var(--w-text-muted)', marginBottom: 8 }}>{ph}</label>
-                      <input type="text" placeholder={ph} style={{ width: '100%', background: 'var(--w-bg-input)', border: '1px solid var(--w-border)', color: 'var(--w-text-primary)', fontSize: 14, padding: '12px 14px', borderRadius: 12, outline: 'none', transition: 'border 0.2s', boxSizing: 'border-box' }} />
-                    </div>
-                  ))}
+                  <div>
+                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, color: 'var(--w-text-muted)', marginBottom: 8 }}>Full Name</label>
+                    <input type="text" required placeholder="Full Name" value={contactName} onChange={e => setContactName(e.target.value)} style={{ width: '100%', background: 'var(--w-bg-input)', border: '1px solid var(--w-border)', color: 'var(--w-text-primary)', fontSize: 14, padding: '12px 14px', borderRadius: 12, outline: 'none', transition: 'border 0.2s', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, color: 'var(--w-text-muted)', marginBottom: 8 }}>Phone Number</label>
+                    <input type="text" placeholder="Phone Number" value={contactPhone} onChange={e => setContactPhone(e.target.value)} style={{ width: '100%', background: 'var(--w-bg-input)', border: '1px solid var(--w-border)', color: 'var(--w-text-primary)', fontSize: 14, padding: '12px 14px', borderRadius: 12, outline: 'none', transition: 'border 0.2s', boxSizing: 'border-box' }} />
+                  </div>
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, color: 'var(--w-text-muted)', marginBottom: 8 }}>Email Address</label>
-                  <input type="email" placeholder="your@email.com" style={{ width: '100%', background: 'var(--w-bg-input)', border: '1px solid var(--w-border)', color: 'var(--w-text-primary)', fontSize: 14, padding: '12px 14px', borderRadius: 12, outline: 'none', boxSizing: 'border-box' }} />
+                  <input type="email" placeholder="your@email.com" value={contactEmail} onChange={e => setContactEmail(e.target.value)} style={{ width: '100%', background: 'var(--w-bg-input)', border: '1px solid var(--w-border)', color: 'var(--w-text-primary)', fontSize: 14, padding: '12px 14px', borderRadius: 12, outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, color: 'var(--w-text-muted)', marginBottom: 8 }}>Message</label>
-                  <textarea rows={4} placeholder="How can we help you?" style={{ width: '100%', background: 'var(--w-bg-input)', border: '1px solid var(--w-border)', color: 'var(--w-text-primary)', fontSize: 14, padding: '12px 14px', borderRadius: 12, outline: 'none', resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+                  <textarea rows={4} required placeholder="How can we help you?" value={contactMessage} onChange={e => setContactMessage(e.target.value)} style={{ width: '100%', background: 'var(--w-bg-input)', border: '1px solid var(--w-border)', color: 'var(--w-text-primary)', fontSize: 14, padding: '12px 14px', borderRadius: 12, outline: 'none', resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
                 </div>
-                <button type="submit" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#f59e0b', color: '#1a0a00', fontWeight: 800, fontSize: 15, padding: '14px', borderRadius: 12, border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>
-                  Send Message <ArrowRight size={17} />
+                
+                {submitStatus.type && (
+                  <div style={{ padding: '10px 14px', borderRadius: 10, fontSize: 13, background: submitStatus.type === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', color: submitStatus.type === 'success' ? '#10b981' : '#ef4444', border: `1px solid ${submitStatus.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
+                    {submitStatus.text}
+                  </div>
+                )}
+
+                <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#f59e0b', color: '#1a0a00', fontWeight: 800, fontSize: 15, padding: '14px', borderRadius: 12, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, transition: 'all 0.2s' }}>
+                  {loading ? 'Sending...' : 'Send Message'} <ArrowRight size={17} />
                 </button>
               </form>
             </motion.div>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* MANAGEMENT LOGIN CTA */}
-      <motion.section
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        style={{ padding: '80px 40px', background: 'var(--w-bg-section1)', borderTop: '1px solid var(--w-border)' }}
-      >
-        <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
-          <div style={{ background: 'var(--w-card-bg)', border: '1px solid rgba(196,168,76,0.2)', borderRadius: 28, padding: 60, position: 'relative', overflow: 'hidden', boxShadow: '0 40px 80px rgba(0,0,0,0.1)' }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at top, rgba(196,168,76,0.05) 0%, transparent 60%)' }} />
-            <div className="gold-glow" style={{ display: 'inline-flex', padding: 16, background: 'var(--w-icon-bg)', color: '#f59e0b', borderRadius: 20, marginBottom: 24, position: 'relative' }}>
-              <Shield size={32} />
-            </div>
-            <h2 style={{ fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 900, color: 'var(--w-text-primary)', marginBottom: 14, position: 'relative' }}>Management Portal Access</h2>
-            <p style={{ color: 'var(--w-text-muted)', fontSize: 16, maxWidth: 480, margin: '0 auto 36px', lineHeight: 1.75, position: 'relative' }}>
-              Access the Braham Sama Operations & Management System. Login is restricted to authorized staff and registered clients only.
-            </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 14, position: 'relative' }}>
-              <Link href="/login" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f59e0b', color: '#1a0a00', fontWeight: 800, fontSize: 16, padding: '14px 32px', borderRadius: 14, textDecoration: 'none', boxShadow: '0 10px 40px rgba(245,158,11,0.25)', transition: 'all 0.2s' }}>
-                Staff & Management Login <ArrowRight size={18} />
-              </Link>
-              <Link href="/client-login" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'transparent', border: '1px solid var(--w-border)', color: 'var(--w-text-secondary)', fontWeight: 700, fontSize: 16, padding: '14px 32px', borderRadius: 14, textDecoration: 'none', transition: 'all 0.2s' }}>
-                Client Portal Login
-              </Link>
-            </div>
           </div>
         </div>
       </motion.section>
@@ -562,6 +575,13 @@ export default function WelcomePage() {
           </div>
           <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center' }}>
             RC No. 7121543 · Kaduna State, Nigeria · © {new Date().getFullYear()} Braham Sama. All rights reserved.
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
+              <button key={i} style={{ padding: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: '#94a3b8', borderRadius: 10, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center' }} onMouseEnter={e => { (e.currentTarget as any).style.color = '#f59e0b'; (e.currentTarget as any).style.borderColor = 'rgba(196,168,76,0.4)'; }} onMouseLeave={e => { (e.currentTarget as any).style.color = '#94a3b8'; (e.currentTarget as any).style.borderColor = 'rgba(255,255,255,0.08)'; }}>
+                <Icon size={16} />
+              </button>
+            ))}
           </div>
           <div style={{ display: 'flex', gap: 20 }}>
             {NAV_LINKS.map(l => (
