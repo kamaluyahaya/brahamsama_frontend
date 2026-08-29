@@ -294,15 +294,15 @@ export default function WelcomePage() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        style={{ padding: '96px 40px', background: 'var(--w-bg-base)' }}
+        style={{ padding: '96px 40px', background: '#020617' }}
       >
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--w-badge-bg)', border: '1px solid var(--w-badge-border)', color: '#fbbf24', fontSize: 11, fontWeight: 700, padding: '6px 16px', borderRadius: 99, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 2 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fbbf24', fontSize: 11, fontWeight: 700, padding: '6px 16px', borderRadius: 99, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 2 }}>
               What We Offer
             </div>
-            <h2 style={{ fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 900, color: 'var(--w-text-primary)', marginBottom: 14 }}>Our <span className="grad">Services</span></h2>
-            <p style={{ color: 'var(--w-text-muted)', fontSize: 17, maxWidth: 520, margin: '0 auto' }}>Comprehensive motorcycle finance and fleet management services designed to empower communities.</p>
+            <h2 style={{ fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 900, color: '#ffffff', marginBottom: 14 }}>Our <span className="grad">Services</span></h2>
+            <p style={{ color: '#94a3b8', fontSize: 17, maxWidth: 520, margin: '0 auto' }}>Comprehensive motorcycle finance and fleet management services designed to empower communities.</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
             {SERVICES.map((s, i) => (
@@ -313,13 +313,13 @@ export default function WelcomePage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: i * 0.1 }}
                 className="service-card"
-                style={{ background: 'var(--w-bg-card)', border: '1px solid var(--w-border)', borderRadius: 20, padding: '28px', transition: 'all 0.3s', cursor: 'default' }}
-                onMouseEnter={e => { (e.currentTarget as any).style.border = '1px solid var(--w-border-hover)'; (e.currentTarget as any).style.transform = 'translateY(-4px)'; (e.currentTarget as any).style.boxShadow = '0 20px 50px rgba(0,0,0,0.15)'; }}
-                onMouseLeave={e => { (e.currentTarget as any).style.border = '1px solid var(--w-border)'; (e.currentTarget as any).style.transform = 'translateY(0)'; (e.currentTarget as any).style.boxShadow = 'none'; }}
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '28px', transition: 'all 0.3s', cursor: 'default' }}
+                onMouseEnter={e => { (e.currentTarget as any).style.border = '1px solid rgba(196,168,76,0.4)'; (e.currentTarget as any).style.transform = 'translateY(-4px)'; (e.currentTarget as any).style.boxShadow = '0 20px 50px rgba(0,0,0,0.3)'; }}
+                onMouseLeave={e => { (e.currentTarget as any).style.border = '1px solid rgba(255,255,255,0.08)'; (e.currentTarget as any).style.transform = 'translateY(0)'; (e.currentTarget as any).style.boxShadow = 'none'; }}
               >
-                <div className="s-icon" style={{ display: 'inline-flex', padding: 14, background: 'var(--w-icon-bg)', color: '#f59e0b', borderRadius: 16, marginBottom: 18 }}>{s.icon}</div>
-                <h3 style={{ fontWeight: 800, color: 'var(--w-text-primary)', fontSize: 17, marginBottom: 10 }}>{s.title}</h3>
-                <p style={{ color: 'var(--w-text-muted)', fontSize: 14, lineHeight: 1.7 }}>{s.desc}</p>
+                <div className="s-icon" style={{ display: 'inline-flex', padding: 14, background: 'rgba(196,168,76,0.12)', color: '#f59e0b', borderRadius: 16, marginBottom: 18 }}>{s.icon}</div>
+                <h3 style={{ fontWeight: 800, color: '#ffffff', fontSize: 17, marginBottom: 10 }}>{s.title}</h3>
+                <p style={{ color: '#94a3b8', fontSize: 14, lineHeight: 1.7 }}>{s.desc}</p>
               </motion.div>
             ))}
           </div>
