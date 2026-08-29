@@ -88,8 +88,8 @@ export default function RootLayout({
       }
     }
 
-    if (!authStatus && pathname !== '/login' && pathname !== '/client-login') {
-      router.push('/login');
+    if (!authStatus && pathname !== '/login' && pathname !== '/client-login' && pathname !== '/welcome') {
+      router.push('/welcome');
     } else if (authStatus && (parsedUser?.role === 'Client' || parsedUser?.role === 'Manager')) {
       const restrictedRoutes = ['/clients', '/md-leaders', '/staff', '/compliance', '/accounts', '/raiders', '/branches'];
       if (restrictedRoutes.some(route => pathname.startsWith(route))) {
@@ -280,8 +280,8 @@ export default function RootLayout({
     }
   ];
 
-  // Bypass Sidebar and Headers for Login view
-  if (pathname === '/login' || pathname === '/client-login') {
+  // Bypass Sidebar and Headers for Login / Landing views
+  if (pathname === '/login' || pathname === '/client-login' || pathname === '/welcome') {
     return (
       <html lang="en">
         <head>
