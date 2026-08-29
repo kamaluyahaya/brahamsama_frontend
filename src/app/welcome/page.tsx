@@ -14,7 +14,7 @@ import {
 const SLIDES = [
   {
     bg: 'from-slate-900 via-blue-950 to-slate-900',
-    badge: 'Empowering Riders Across Kano State',
+    badge: 'Empowering Riders Across Kaduna State',
     title: 'Your Trusted\nMotorcycle Finance\nPartner',
     sub: 'We provide accessible motorcycle financing solutions to riders, enabling livelihoods and building lasting financial success across Northern Nigeria.',
     cta: 'Get Started Today',
@@ -48,7 +48,7 @@ const SERVICES = [
 ];
 
 const TEAM = [
-  { name: 'Braham Sama', role: 'Chief Executive Officer', emoji: '👔', desc: "Visionary leader driving Braham Sama's mission to empower Kano State motorcycle riders through accessible finance." },
+  { name: 'Braham Sama', role: 'Chief Executive Officer', emoji: '👔', desc: "Visionary leader driving Braham Sama's mission to empower Kaduna State motorcycle riders through accessible finance." },
   { name: 'Operations Director', role: 'Head of Operations', emoji: '⚙️', desc: 'Overseeing day-to-day branch operations, ensuring excellence in client service and fleet management across all offices.' },
   { name: 'Finance Officer', role: 'Chief Finance Officer', emoji: '💼', desc: 'Managing the financial health of the organization through disciplined bookkeeping, reporting and strategic planning.' },
   { name: 'Compliance Lead', role: 'Compliance & Risk Manager', emoji: '🛡️', desc: 'Ensuring all operations adhere to internal policies and regulatory frameworks to protect company interests.' },
@@ -64,9 +64,9 @@ const STATS = [
 ];
 
 const STORIES = [
-  { name: 'Musa Garba', location: 'Kano North', quote: 'Braham Sama changed my life. I now own my motorcycle and my income has tripled since joining their program.', stars: 5, role: 'Motorcycle Rider' },
-  { name: 'Aisha Mohammed', location: 'Kano Central', quote: 'The process was simple and the team was very supportive. I completed my contract on time and my business is growing.', stars: 5, role: 'Fleet Operator' },
-  { name: 'Ibrahim Yusuf', location: 'Kano South', quote: 'Professional service and transparent processes. Braham Sama truly cares about empowering riders like me.', stars: 5, role: 'MD Leader' },
+  { name: 'Musa Garba', location: 'Kaduna North', quote: 'Braham Sama changed my life. I now own my motorcycle and my income has tripled since joining their program.', stars: 5, role: 'Motorcycle Rider' },
+  { name: 'Aisha Mohammed', location: 'Kaduna Central', quote: 'The process was simple and the team was very supportive. I completed my contract on time and my business is growing.', stars: 5, role: 'Fleet Operator' },
+  { name: 'Ibrahim Yusuf', location: 'Kaduna South', quote: 'Professional service and transparent processes. Braham Sama truly cares about empowering riders like me.', stars: 5, role: 'MD Leader' },
 ];
 
 const NAV_LINKS = ['Services', 'About', 'Team', 'Success Stories', 'Contact'];
@@ -202,14 +202,14 @@ export default function WelcomePage() {
               <img src="/logo.jpeg" alt="BS" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as any).parentElement.innerHTML = '<div style="width:100%;height:100%;background:#1a2332;display:flex;align-items:center;justify-content:center;font-weight:900;color:#c9a84c;font-size:14px">BS</div>'; }} />
             </div>
             <div>
-              <div style={{ fontWeight: 900, color: 'var(--w-text-primary)', fontSize: 18, letterSpacing: -0.5 }}>Braham Sama</div>
+              <div style={{ fontWeight: 900, color: scrolled ? 'var(--w-text-primary)' : '#ffffff', fontSize: 18, letterSpacing: -0.5 }}>Braham Sama</div>
               <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', color: '#c9a84c', marginTop: 1 }}>Operations & Management</div>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: 28, alignItems: 'center' }} className="hidden-mobile">
             {NAV_LINKS.map(l => (
-              <button key={l} onClick={() => scrollTo(l.toLowerCase().replace(/\s+/g, '-'))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--w-text-secondary)', fontWeight: 600, fontSize: 14, padding: 0, transition: 'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#f59e0b')} onMouseLeave={e => (e.currentTarget.style.color = 'var(--w-text-secondary)')}>
+              <button key={l} onClick={() => scrollTo(l.toLowerCase().replace(/\s+/g, '-'))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: scrolled ? 'var(--w-text-secondary)' : '#ffffff', fontWeight: 600, fontSize: 14, padding: 0, transition: 'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#f59e0b')} onMouseLeave={e => (e.currentTarget.style.color = scrolled ? 'var(--w-text-secondary)' : '#ffffff')}>
                 {l}
               </button>
             ))}
@@ -286,7 +286,7 @@ export default function WelcomePage() {
               <div style={{ position: 'absolute', top: 20, right: 20, width: 80, height: 80, background: 'rgba(196,168,76,0.08)', borderRadius: '50%', filter: 'blur(20px)' }} />
               <div className="float" style={{ fontSize: 90, textAlign: 'center', marginBottom: 24 }}>🏢</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                {[['Founded', '2019'], ['Headquarters', 'Kano State'], ['RC Number', '7121543'], ['Branches', '3 Offices']].map(([l, v]) => (
+                {[['Founded', '2019'], ['Headquarters', 'Kaduna State'], ['RC Number', '7121543'], ['Branches', '3 Offices']].map(([l, v]) => (
                   <div key={l} style={{ background: 'var(--w-bg-card)', border: '1px solid var(--w-border)', borderRadius: 14, padding: '14px 16px' }}>
                     <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--w-text-muted)', marginBottom: 4 }}>{l}</div>
                     <div style={{ fontWeight: 800, color: 'var(--w-text-primary)', fontSize: 14 }}>{v}</div>
@@ -304,7 +304,7 @@ export default function WelcomePage() {
               Building Financial <br /><span className="grad">Futures for Riders</span>
             </h2>
             <p style={{ color: 'var(--w-text-secondary)', fontSize: 17, lineHeight: 1.8, marginBottom: 20 }}>
-              Braham Sama Operations & Management System was established to bridge the financial gap for motorcycle riders in Kano State. We provide affordable hire-purchase financing that empowers riders to own their vehicles and grow their livelihoods.
+              Braham Sama Operations & Management System was established to bridge the financial gap for motorcycle riders in Kaduna State. We provide affordable hire-purchase financing that empowers riders to own their vehicles and grow their livelihoods.
             </p>
             <p style={{ color: 'var(--w-text-muted)', lineHeight: 1.8, marginBottom: 28 }}>
               With a robust digital management platform, we track every client, disbursement, return, and branch operation in real-time — ensuring transparency, accountability and growth for all stakeholders.
@@ -402,9 +402,9 @@ export default function WelcomePage() {
         <div style={{ position: 'relative', maxWidth: 1280, margin: '0 auto', textAlign: 'center' }}>
           <div style={{ fontSize: 'clamp(70px, 12vw, 130px)', fontWeight: 900, color: 'rgba(0,0,0,0.1)', lineHeight: 1, marginBottom: -24, letterSpacing: -4 }}>5+ YEARS</div>
           <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 900, color: '#1a0a00', position: 'relative', marginBottom: 16 }}>Of Trust & Excellence</h2>
-          <p style={{ color: 'rgba(0,0,0,0.6)', fontSize: 17, maxWidth: 560, margin: '0 auto 40px' }}>Since 2019, Braham Sama has been transforming lives across Kano State through responsible motorcycle financing and unwavering commitment.</p>
+          <p style={{ color: 'rgba(0,0,0,0.6)', fontSize: 17, maxWidth: 560, margin: '0 auto 40px' }}>Since 2019, Braham Sama has been transforming lives across Kaduna State through responsible motorcycle financing and unwavering commitment.</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 12 }}>
-            {['2019 — Founded in Kano', '2021 — Expanded to 3 Branches', '2023 — 500+ Active Clients', '2025 — ₦50M+ Disbursed'].map((item, i) => (
+            {['2019 — Founded in Kaduna', '2021 — Expanded to 3 Branches', '2023 — 500+ Active Clients', '2025 — ₦50M+ Disbursed'].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(0,0,0,0.12)', border: '1px solid rgba(0,0,0,0.15)', color: '#1a0a00', fontWeight: 700, fontSize: 13, padding: '10px 20px', borderRadius: 12 }}>
                 <CheckCircle size={16} /> {item}
               </div>
@@ -427,7 +427,7 @@ export default function WelcomePage() {
             {/* Info */}
             <div>
               <h3 style={{ fontWeight: 800, color: 'var(--w-text-primary)', fontSize: 22, marginBottom: 28 }}>We're here to help</h3>
-              {[{ icon: <Phone size={18} />, label: 'Phone', val: '+234 803 000 0000', sub: 'Mon–Fri, 8am to 5pm' }, { icon: <Mail size={18} />, label: 'Email', val: 'info@brahamsama.com', sub: 'We reply within 24 hours' }, { icon: <MapPin size={18} />, label: 'Address', val: 'Kano State, Nigeria', sub: 'Head Office & 2 Branch Offices' }].map((item, i) => (
+              {[{ icon: <Phone size={18} />, label: 'Phone', val: '+234 803 000 0000', sub: 'Mon–Fri, 8am to 5pm' }, { icon: <Mail size={18} />, label: 'Email', val: 'info@brahamsama.com', sub: 'We reply within 24 hours' }, { icon: <MapPin size={18} />, label: 'Address', val: 'Kaduna State, Nigeria', sub: 'Head Office & 2 Branch Offices' }].map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: 14, background: 'var(--w-bg-card)', border: '1px solid var(--w-border)', borderRadius: 16, padding: 18, marginBottom: 14 }}>
                   <div style={{ padding: 10, background: 'var(--w-icon-bg)', color: '#f59e0b', borderRadius: 12, flexShrink: 0 }}>{item.icon}</div>
                   <div>
@@ -515,7 +515,7 @@ export default function WelcomePage() {
             </div>
           </div>
           <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center' }}>
-            RC No. 7121543 · Kano State, Nigeria · © {new Date().getFullYear()} Braham Sama. All rights reserved.
+            RC No. 7121543 · Kaduna State, Nigeria · © {new Date().getFullYear()} Braham Sama. All rights reserved.
           </div>
           <div style={{ display: 'flex', gap: 20 }}>
             {NAV_LINKS.map(l => (
