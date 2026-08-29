@@ -418,7 +418,7 @@ export default function Dashboard() {
                   <th>Rider Name</th>
                   <th>Amount</th>
                   <th>Chassis No</th>
-                  <th>M/D Leader</th>
+                  <th>Manager</th>
                 </tr>
               </thead>
               <tbody>
@@ -1600,7 +1600,7 @@ export default function Dashboard() {
                   <div>
                     <div className="font-semibold text-sm text-slate-800 dark:text-white">{item.raider_name || item.md_leader_name || 'General Return'}</div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      Date: {item.date} &bull; {item.raider_name ? 'Raider' : 'M/D Leader'}
+                      Date: {item.date} &bull; {item.raider_name ? 'Raider' : 'Manager'}
                     </div>
                   </div>
                   <div className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">

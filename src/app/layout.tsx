@@ -234,11 +234,11 @@ export default function RootLayout({
       ]
     },
     {
-      name: 'M/D Leaders',
+      name: 'Managers',
       path: '/md-leaders',
       icon: <ClipboardList className="w-5 h-5" />,
       subItems: [
-        { name: 'Add M/D Leader', path: '/md-leaders?action=add' }
+        { name: 'Add Manager', path: '/md-leaders?action=add' }
       ]
     },
     ...(currentUser?.role === 'Admin' ? [

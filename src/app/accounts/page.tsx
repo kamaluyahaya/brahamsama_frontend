@@ -35,6 +35,10 @@ interface Expense {
   category: string;
   description: string;
   recorded_by: string;
+  client_id?: number | null;
+  staff_id?: number | null;
+  client_name?: string | null;
+  staff_name?: string | null;
 }
 
 interface ReturnRecord {
@@ -58,6 +62,8 @@ export default function AccountsPage() {
   const [mdLeaders, setMDLeaders] = useState<MDLeader[]>([]);
   const [returns, setReturns] = useState<ReturnRecord[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
+  const [staffList, setStaffList] = useState<any[]>([]);
   
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -77,9 +83,11 @@ export default function AccountsPage() {
   const [expenseForm, setExpenseForm] = useState({
     date: new Date().toISOString().split('T')[0],
     amount: '',
-    category: 'Administration',
+    category: 'Disbursement',
     description: '',
     recorded_by: '',
+    client_id: '',
+    staff_id: '',
   });
 
   // Report Generator State
@@ -100,7 +108,7 @@ export default function AccountsPage() {
     setReportPreviewTitle('CASH RETURN RECEIPT VOUCHER');
     setReportPreviewFields([
       { label: 'Payee Name', value: item.raider_name || item.md_leader_name || 'General Inflow' },
-      { label: 'Payee Type', value: item.raider_id ? 'Raider (Motorcyclist)' : item.md_leader_id ? 'M/D Squad Leader' : 'General Inflow' },
+      { label: 'Payee Type', value: item.raider_id ? 'Raider (Motorcyclist)' : item.md_leader_id ? 'Manager' : 'General Inflow' },
       { label: 'Inflow Date', value: item.date },
       { label: 'Receipt Number', value: item.receipt_no || 'N/A' },
       { label: 'Return Amount', value: `₦${item.amount.toLocaleString()}` },
@@ -110,14 +118,15 @@ export default function AccountsPage() {
     setShowReportModal(true);
   };
 
-  const openExpenseVoucher = (item: Expense) => {
+  const openExpenseVoucher = (item: any) => {
     setReportPreviewTitle('CASH OUTFLOW EXPENSE PAYMENT VOUCHER');
     setReportPreviewFields([
       { label: 'Voucher Description', value: item.description || 'General Outflow' },
       { label: 'Expense Category', value: item.category },
       { label: 'Outflow Date', value: item.date },
       { label: 'Disbursed Amount', value: `₦${item.amount.toLocaleString()}` },
-      { label: 'Logged Officer', value: item.recorded_by || 'N/A' },
+      { label: 'Beneficiary Client', value: item.client_name || 'None (General Office Expense)' },
+      { label: 'Logged Officer (Staff)', value: item.staff_name || item.recorded_by || 'System' },
     ]);
     setReportPreviewTables([]);
     setShowReportModal(true);
@@ -180,7 +189,13 @@ export default function AccountsPage() {
     ? mdLeaders.find(m => m.id === parseInt(returnForm.md_leader_id)) 
     : null;
 
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
   useEffect(() => {
+    const stored = localStorage.getItem('currentUser');
+    if (stored) {
+      setCurrentUser(JSON.parse(stored));
+    }
     fetchMeta();
     fetchReturns();
     fetchExpenses();
@@ -200,6 +215,12 @@ export default function AccountsPage() {
 
       const mdRes = await fetch('/api/md-leaders');
       if (mdRes.ok) setMDLeaders(await mdRes.json());
+
+      const clientRes = await fetch('/api/clients');
+      if (clientRes.ok) setClients(await clientRes.json());
+
+      const staffRes = await fetch('/api/staff');
+      if (staffRes.ok) setStaffList(await staffRes.json());
     } catch (err) {
       console.error('Error fetching metadata:', err);
     }
@@ -233,7 +254,7 @@ export default function AccountsPage() {
     e.preventDefault();
     if (!returnForm.amount) return alert('Amount is required');
     if (returnForm.payeeType === 'raider' && !returnForm.raider_id) return alert('Select a Raider');
-    if (returnForm.payeeType === 'md' && !returnForm.md_leader_id) return alert('Select an M/D Leader');
+    if (returnForm.payeeType === 'md' && !returnForm.md_leader_id) return alert('Select a Manager');
 
     try {
       const payload = {
@@ -278,7 +299,9 @@ export default function AccountsPage() {
         amount: parseFloat(expenseForm.amount),
         category: expenseForm.category,
         description: expenseForm.description,
-        recorded_by: expenseForm.recorded_by,
+        recorded_by: currentUser ? currentUser.name : 'System',
+        client_id: expenseForm.client_id || null,
+        staff_id: currentUser && currentUser.role !== 'Client' && currentUser.role !== 'Manager' ? currentUser.id : null,
       };
 
       const res = await fetch('/api/accounts/expenses', {
@@ -291,9 +314,11 @@ export default function AccountsPage() {
         setExpenseForm({
           date: new Date().toISOString().split('T')[0],
           amount: '',
-          category: 'Administration',
+          category: 'Disbursement',
           description: '',
           recorded_by: '',
+          client_id: '',
+          staff_id: '',
         });
         fetchExpenses();
       }
@@ -416,7 +441,7 @@ export default function AccountsPage() {
                   <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Payee Type</label>
                   <select value={returnForm.payeeType} onChange={(e) => setReturnForm(prev => ({ ...prev, payeeType: e.target.value, raider_id: '', md_leader_id: '' }))} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm">
                     <option value="raider">Raider (Motorcyclist)</option>
-                    <option value="md">M/D Leader (Delivery)</option>
+                    <option value="md">Manager (Delivery)</option>
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -556,27 +581,36 @@ export default function AccountsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Category</label>
-                  <select value={expenseForm.category} onChange={(e) => setExpenseForm(prev => ({ ...prev, category: e.target.value }))} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm">
-                    <option value="Administration">Administration</option>
-                    <option value="Maintenance">Vehicle Maintenance</option>
-                    <option value="Auxiliary">Sec & Auxiliary Staff</option>
-                    <option value="Compliance">Compliance & Legal</option>
-                    <option value="Fuel">Fuel / Logistics</option>
-                    <option value="Other">Other Expenses</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Recorded By</label>
-                  <input type="text" placeholder="Logged Officer Name" value={expenseForm.recorded_by} onChange={(e) => setExpenseForm(prev => ({ ...prev, recorded_by: e.target.value }))} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
-                </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Category</label>
+                <select value={expenseForm.category} onChange={(e) => setExpenseForm(prev => ({ ...prev, category: e.target.value }))} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm">
+                  <option value="Disbursement">Disbursement to Client</option>
+                  <option value="Administration">Administration</option>
+                  <option value="Maintenance">Vehicle Maintenance</option>
+                  <option value="Auxiliary">Sec & Auxiliary Staff</option>
+                  <option value="Compliance">Compliance & Legal</option>
+                  <option value="Fuel">Fuel / Logistics</option>
+                  <option value="Other">Other Expenses</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Beneficiary Client (Optional - if sending money to Client)</label>
+                <select
+                  value={expenseForm.client_id}
+                  onChange={(e) => setExpenseForm(prev => ({ ...prev, client_id: e.target.value }))}
+                  className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
+                >
+                  <option value="">-- General Office Expense (No Client Link) --</option>
+                  {clients.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Description / Details</label>
-                <textarea placeholder="Detail explanation of the payment made" value={expenseForm.description} onChange={(e) => setExpenseForm(prev => ({ ...prev, description: e.target.value }))} rows={4} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
+                <textarea placeholder="Detail explanation of the payment made" value={expenseForm.description} onChange={(e) => setExpenseForm(prev => ({ ...prev, description: e.target.value }))} rows={3} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
               </div>
 
               <button type="submit" className="w-full bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-rose-500/10 text-sm mt-2 flex items-center justify-center gap-1.5">
@@ -592,7 +626,7 @@ export default function AccountsPage() {
             {loading ? (
               <p className="text-sm text-slate-500 dark:text-slate-400">Loading records...</p>
             ) : expenses.length === 0 ? (
-              <p className="text-sm text-slate-450 dark:text-slate-550">No expenses logged.</p>
+              <p className="text-sm text-slate-455 dark:text-slate-550">No expenses logged.</p>
             ) : (
               <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800/80 max-h-[450px]">
                 <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-sm">
@@ -601,6 +635,7 @@ export default function AccountsPage() {
                       <th className="px-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Description</th>
                       <th className="px-4 py-3 text-xs font-bold text-slate-505 dark:text-slate-400 uppercase">Category</th>
                       <th className="px-4 py-3 text-xs font-bold text-slate-505 dark:text-slate-400 uppercase">Date</th>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-505 dark:text-slate-400 uppercase">Recorded By</th>
                       <th className="px-4 py-3 text-xs font-bold text-slate-505 dark:text-slate-400 uppercase">Amount</th>
                       <th className="px-4 py-3 text-xs font-bold text-slate-505 dark:text-slate-400 uppercase">Actions</th>
                     </tr>
@@ -608,13 +643,23 @@ export default function AccountsPage() {
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-850">
                     {expenses.map(item => (
                       <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/10">
-                        <td className="px-4 py-3 font-bold text-slate-800 dark:text-white">{item.description || 'General Expense'}</td>
+                        <td className="px-4 py-3 text-slate-800 dark:text-white">
+                          <div className="font-bold">{item.description || 'General Expense'}</div>
+                          {item.client_name && (
+                            <div className="text-[10px] text-cyan-600 dark:text-cyan-400 font-bold uppercase mt-0.5">
+                              Client Ref: {item.client_name}
+                            </div>
+                          )}
+                        </td>
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-305">
                             {item.category}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-slate-655 dark:text-slate-300">{item.date}</td>
+                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-xs">
+                          {item.staff_name || item.recorded_by || 'System'}
+                        </td>
                         <td className="px-4 py-3 text-rose-600 dark:text-rose-400 font-bold">₦{item.amount.toLocaleString()}</td>
                         <td className="px-4 py-3 flex items-center gap-1.5">
                           <button 

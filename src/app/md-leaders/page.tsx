@@ -177,7 +177,7 @@ export default function MDLeadersPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to save M/D leader record');
+      alert('Failed to save manager record');
     } finally {
       setIsSubmitting(false);
     }
@@ -201,14 +201,14 @@ export default function MDLeadersPage() {
       <div className="flex justify-between items-center">
         <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
           <ClipboardList className="w-5 h-5 text-violet-500" />
-          <span>Motor & Delivery (M/D) Leaders</span>
+          <span>Managers</span>
         </h2>
         <button 
           className="bg-violet-600 hover:bg-violet-500 text-white font-semibold px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-violet-500/10 flex items-center gap-2 text-sm"
           onClick={() => setShowAddModal(true)}
         >
           <Plus className="w-4 h-4" />
-          <span>Add M/D Leader</span>
+          <span>Add Manager</span>
         </button>
       </div>
 
@@ -217,7 +217,7 @@ export default function MDLeadersPage() {
         <Search className="w-4 h-4 text-slate-400 absolute left-8 pointer-events-none" />
         <input
           type="text"
-          placeholder="Search by M/D leader name, phone, or Tempo Account..."
+          placeholder="Search by manager name, phone, or Tempo Account..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800/80 rounded-xl pl-11 pr-4 py-3 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 text-sm"
@@ -227,9 +227,9 @@ export default function MDLeadersPage() {
       {/* Leaders Table */}
       <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm">
         {loading ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">Loading leader files...</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Loading manager files...</p>
         ) : leaders.length === 0 ? (
-          <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">No leaders found. Click 'Add M/D Leader' to register one.</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">No managers found. Click 'Add Manager' to register one.</p>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800/80">
             <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-sm">
@@ -288,7 +288,7 @@ export default function MDLeadersPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Register M/D Leader</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Register Manager</h3>
                 <button className="text-slate-400 hover:text-slate-650 dark:hover:text-white" onClick={() => setShowAddModal(false)}>
                   <X className="w-5 h-5" />
                 </button>
@@ -296,7 +296,7 @@ export default function MDLeadersPage() {
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Leader Full Name *</label>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Manager Full Name *</label>
                   <input type="text" name="name" value={formData.name} onChange={handleInputChange} required className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" placeholder="Full Name" />
                 </div>
 
@@ -312,7 +312,7 @@ export default function MDLeadersPage() {
 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Operational Reports / Notes</label>
-                  <textarea name="reports" value={formData.reports} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" placeholder="Notes, reports or remarks regarding this delivery leader's squad" rows={4} />
+                  <textarea name="reports" value={formData.reports} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" placeholder="Notes, reports or remarks regarding this manager's squad" rows={4} />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -344,7 +344,7 @@ export default function MDLeadersPage() {
                   <button type="button" className="bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition-all" onClick={() => setShowAddModal(false)}>Cancel</button>
                   <button type="submit" className="bg-violet-600 hover:bg-violet-500 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2" disabled={isSubmitting}>
                     <Save className="w-4 h-4" />
-                    <span>{isSubmitting ? 'Saving...' : 'Register Leader'}</span>
+                    <span>{isSubmitting ? 'Saving...' : 'Register Manager'}</span>
                   </button>
                 </div>
               </form>
@@ -365,7 +365,7 @@ export default function MDLeadersPage() {
               onClick={(e) => e.stopPropagation()}
             >
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">M/D Leader details: {selectedLeader.name}</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Manager details: {selectedLeader.name}</h3>
               <button className="text-slate-400 hover:text-slate-655 dark:hover:text-white" onClick={() => setShowDetailModal(false)}>
                 <X className="w-5 h-5" />
               </button>
@@ -471,7 +471,7 @@ export default function MDLeadersPage() {
                 onClick={() => deleteLeader(selectedLeader.id)}
               >
                 <Trash2 className="w-4 h-4" />
-                <span>Delete Leader</span>
+                <span>Delete Manager</span>
               </button>
               <div className="flex gap-2">
                 <button 
@@ -498,9 +498,9 @@ export default function MDLeadersPage() {
         <ReportPreviewModal
           isOpen={showReportModal}
           onClose={() => setShowReportModal(false)}
-          title="M/D Leader Squad Report"
+          title="Manager Squad Report"
           recordData={[
-            { label: 'Leader Name', value: selectedLeader.name },
+            { label: 'Manager Name', value: selectedLeader.name },
             { label: 'Phone Number', value: selectedLeader.phone },
             { label: 'Tempo Account', value: selectedLeader.tempo_account },
             { label: 'Operational Reports', value: selectedLeader.reports || 'No reports filed.' },
