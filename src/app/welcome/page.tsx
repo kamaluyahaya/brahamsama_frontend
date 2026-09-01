@@ -64,11 +64,11 @@ const TEAM = [
 ];
 
 const STATS = [
-  { value: '5+', label: 'Years in Operation', icon: <Clock className="w-7 h-7" /> },
+  { value: '10+', label: 'Years in Operation', icon: <Clock className="w-7 h-7" /> },
   { value: '500+', label: 'Active Clients Served', icon: <Users className="w-7 h-7" /> },
   { value: '₦50M+', label: 'Total Disbursed', icon: <TrendingUp className="w-7 h-7" /> },
   { value: '3', label: 'Branch Offices', icon: <Building2 className="w-7 h-7" /> },
-  { value: '1000+', label: 'Motorcycles Financed', icon: <Bike className="w-7 h-7" /> },
+  { value: '1000+', label: 'Tricycles Financed', icon: <Bike className="w-7 h-7" /> },
   { value: '98%', label: 'Client Satisfaction', icon: <Star className="w-7 h-7" /> },
 ];
 
@@ -89,6 +89,7 @@ export default function WelcomePage() {
   const [animating, setAnimating] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const [blogLoading, setBlogLoading] = useState(true);
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [contactEmail, setContactEmail] = useState('');
@@ -97,12 +98,14 @@ export default function WelcomePage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setBlogLoading(true);
     fetch('/api/blog/public')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setBlogPosts(data);
       })
-      .catch(err => console.error('Failed to fetch blog posts:', err));
+      .catch(err => console.error('Failed to fetch blog posts:', err))
+      .finally(() => setBlogLoading(false));
   }, []);
 
   const handleContactSubmit = async (e: React.FormEvent) => {
@@ -466,7 +469,39 @@ export default function WelcomePage() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
-            {blogPosts.length > 0 ? (
+            {blogLoading ? (
+              [1, 2, 3].map((_, i) => (
+                <div
+                  key={i}
+                  className="animate-pulse"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 20,
+                    padding: 24,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    minHeight: 340
+                  }}
+                >
+                  <div>
+                    {/* Shimmer Image */}
+                    <div className="bg-slate-800/80 rounded-xl" style={{ height: 180, marginBottom: 16 }} />
+                    {/* Shimmer Category */}
+                    <div className="bg-amber-500/20 rounded-md" style={{ height: 14, width: '30%', marginBottom: 12 }} />
+                    {/* Shimmer Title */}
+                    <div className="bg-slate-700/60 rounded-md" style={{ height: 20, width: '90%', marginBottom: 10 }} />
+                    <div className="bg-slate-700/60 rounded-md" style={{ height: 20, width: '65%', marginBottom: 16 }} />
+                    {/* Shimmer Summary */}
+                    <div className="bg-slate-800/50 rounded-md" style={{ height: 14, width: '100%', marginBottom: 6 }} />
+                    <div className="bg-slate-800/50 rounded-md" style={{ height: 14, width: '80%' }} />
+                  </div>
+                  {/* Shimmer Button */}
+                  <div className="bg-amber-500/30 rounded-lg mt-6" style={{ height: 18, width: '40%' }} />
+                </div>
+              ))
+            ) : blogPosts.length > 0 ? (
               blogPosts.map((post, i) => (
                 <motion.div
                   key={post.id || i}
