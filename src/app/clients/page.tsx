@@ -675,7 +675,7 @@ setMcForm({
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] font-bold text-slate-550 uppercase tracking-wider">Total Disbursed (₦)</label>
+                    <label className="text-[11px] font-bold text-slate-550 uppercase tracking-wider">Amount purchased (₦)</label>
                     <input
                       type="number"
                       required
