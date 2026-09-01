@@ -40,12 +40,20 @@ const SLIDES = [
 ];
 
 const SERVICES = [
-  { icon: <Bike className="w-8 h-8" />, title: 'Motorcycle Financing', desc: 'Flexible hire-purchase agreements enabling riders to own motorcycles while paying in affordable installments over agreed contract terms.' },
-  { icon: <Users className="w-8 h-8" />, title: 'Client Management', desc: 'Complete lifecycle management for all clients — from onboarding and KYC verification to disbursement tracking and contract completion.' },
-  { icon: <TrendingUp className="w-8 h-8" />, title: 'Financial Reporting', desc: 'Real-time financial dashboards, ledgers and voucher generation covering all inflows, outflows and branch-level performance summaries.' },
-  { icon: <Shield className="w-8 h-8" />, title: 'Compliance & Risk', desc: 'Robust compliance monitoring with query logs, action tracking, and automated alerts to safeguard company assets and reduce default risk.' },
-  { icon: <Building2 className="w-8 h-8" />, title: 'Branch Operations', desc: 'Multi-branch management allowing each office to manage its own fleet, clients and financial records under one centralized system.' },
-  { icon: <Handshake className="w-8 h-8" />, title: 'MD Leader Network', desc: 'A structured MD Leader program connecting grassroots motorcycle managers to clients, enabling wider reach and efficient collection.' },
+  { num: '01', title: 'Transportation Asset Management', desc: 'Professional management of transportation assets on behalf of vehicle and tricycle owners including driver recruitment, daily supervision, remittance monitoring, tracking, documentation, and asset inspection.' },
+  { num: '02', title: 'Balance Bases Transportation Management', desc: 'A structured model connecting asset owners, management, and operators. The owner provides the asset, company provides professional management, and operator runs the asset with transparent returns.' },
+  { num: '03', title: 'Tricycle (Keke) Acquisition & Ownership', desc: 'Assisting individuals and investors to enter commercial tricycle transportation through complete ownership or structured shared arrangements covering acquisition, deployment, and management.' },
+  { num: '04', title: 'Shared Tricycle Ownership / Share Investment', desc: 'Innovative shared transportation asset ownership model allowing multiple investors to collectively purchase units/shares of commercial tricycles with clear management and financial distribution.' },
+  { num: '05', title: 'Vehicle Importation & Acquisition', desc: 'Facilitating local and international vehicle procurement, importation, logistics coordination, documentation, and vehicle inspection for personal, commercial, or fleet expansion use.' },
+  { num: '06', title: 'Vehicle Sales', desc: 'Connecting clients with suitable vehicles for commercial transportation, private use, business operations, corporate fleets, and transportation investments without acquisition complications.' },
+  { num: '07', title: 'Commercial Vehicle Deployment', desc: 'Transitioning owned vehicles into structured, revenue-generating commercial operations through registration, operator placement, route assessment, supervision, and performance monitoring.' },
+  { num: '08', title: 'Driver & Operator Management', desc: 'Comprehensive recruitment, supervision, performance evaluation, and accountability systems for operators to ensure asset protection, vehicle longevity, and sustainable returns.' },
+  { num: '09', title: 'Vehicle Tracking & Monitoring', desc: 'Installation and active monitoring of GPS vehicle tracking systems for real-time location monitoring, operational supervision, driver accountability, and recovery support.' },
+  { num: '10', title: 'Maintenance & Asset Preservation', desc: 'Coordinated routine servicing, preventive maintenance, repairs, tyre & engine monitoring, and technical inspections to protect asset value and prolong operational lifespan.' },
+  { num: '11', title: 'Transportation Investment Opportunities', desc: 'Structured investment arrangements (complete ownership, shared ownership, tricycle & vehicle investments) with clear financial terms, distributions, and exit strategies.' },
+  { num: '12', title: 'Asset Exit & Resale Management', desc: 'Clear exit pathways and resale structures when owners wish to sell, replace, or exit an asset investment, ensuring transparent distribution of sale proceeds.' },
+  { num: '13', title: 'Fleet Management', desc: 'Coordinated management for multi-vehicle owners and corporate clients covering deployment, tracking, driver supervision, maintenance, documentation, and reporting.' },
+  { num: '14', title: 'Transportation Business Consultancy', desc: 'Professional guidance for prospective owners and investors on vehicle selection, acquisition costs, driver management, operational risks, investment structures, and exit planning.' },
 ];
 
 const TEAM = [
@@ -70,7 +78,7 @@ const STORIES = [
   { name: 'Ibrahim Yusuf', location: 'Kaduna South', quote: 'Professional service and transparent processes. Braham Sama truly cares about empowering riders like me.', stars: 5, role: 'MD Leader' },
 ];
 
-const NAV_LINKS = ['Services', 'About', 'Team', 'Success Stories', 'Contact'];
+const NAV_LINKS = ['Services', 'About', 'History', 'Team', 'Success Stories', 'Contact'];
 
 /* ─────────────────────────── COMPONENT ─────────────────────────── */
 
@@ -180,13 +188,17 @@ export default function WelcomePage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 28, alignItems: 'center' }} className="hidden-mobile">
             {NAV_LINKS.map(l => (
-              <button key={l} onClick={() => scrollTo(l.toLowerCase().replace(/\s+/g, '-'))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: scrolled ? 'var(--w-text-secondary)' : '#ffffff', fontWeight: 600, fontSize: 14, padding: 0, transition: 'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#f59e0b')} onMouseLeave={e => (e.currentTarget.style.color = scrolled ? 'var(--w-text-secondary)' : '#ffffff')}>
-                {l}
-              </button>
+              l === 'History' ? (
+                <Link key={l} href="/history" style={{ color: scrolled ? 'var(--w-text-secondary)' : '#ffffff', fontWeight: 600, fontSize: 14, textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#f59e0b')} onMouseLeave={e => (e.currentTarget.style.color = scrolled ? 'var(--w-text-secondary)' : '#ffffff')}>
+                  {l}
+                </Link>
+              ) : (
+                <button key={l} onClick={() => scrollTo(l.toLowerCase().replace(/\s+/g, '-'))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: scrolled ? 'var(--w-text-secondary)' : '#ffffff', fontWeight: 600, fontSize: 14, padding: 0, transition: 'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#f59e0b')} onMouseLeave={e => (e.currentTarget.style.color = scrolled ? 'var(--w-text-secondary)' : '#ffffff')}>
+                  {l}
+                </button>
+              )
             ))}
-          </div>
 
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <div className="desktop-only">
@@ -320,13 +332,16 @@ export default function WelcomePage() {
             <p style={{ color: 'var(--w-text-muted)', lineHeight: 1.8, marginBottom: 28 }}>
               With a robust digital management platform, we track every client, disbursement, return, and branch operation in real-time — ensuring transparency, accountability and growth for all stakeholders.
             </p>
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <ul style={{ listStyle: 'none', margin: '0 0 28px 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {['100% transparent operations', 'Flexible contract terms tailored to riders', 'Multi-branch nationwide coverage', 'Dedicated client support teams'].map(item => (
                 <li key={item} style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--w-text-primary)', fontWeight: 500 }}>
                   <CheckCircle size={18} style={{ color: '#34d399', flexShrink: 0 }} /> {item}
                 </li>
               ))}
             </ul>
+            <Link href="/history" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', color: '#f59e0b', fontWeight: 800, fontSize: 14, padding: '12px 24px', borderRadius: 14, textDecoration: 'none', transition: 'all 0.2s' }}>
+              Read Our Full History <ArrowRight size={16} />
+            </Link>
           </motion.div>
         </div>
       </motion.section>
@@ -343,26 +358,28 @@ export default function WelcomePage() {
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fbbf24', fontSize: 11, fontWeight: 700, padding: '6px 16px', borderRadius: 99, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 2 }}>
-              What We Offer
+              Our Services / What We Offer
             </div>
-            <h2 style={{ fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 900, color: '#ffffff', marginBottom: 14 }}>Our <span className="grad">Services</span></h2>
-            <p style={{ color: '#94a3b8', fontSize: 17, maxWidth: 520, margin: '0 auto' }}>Comprehensive motorcycle finance and fleet management services designed to empower communities.</p>
+            <h2 style={{ fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 900, color: '#ffffff', marginBottom: 14 }}>Driving Transportation, <span className="grad">Creating Ownership</span>, Building Opportunities</h2>
+            <p style={{ color: '#94a3b8', fontSize: 16, maxWidth: 840, margin: '0 auto', lineHeight: 1.7 }}>
+              At <strong>BRAHAM SAMA NIG. LTD</strong>, we are committed to transforming transportation from a daily means of mobility into a structured and sustainable business opportunity. Our company provides professional transportation management, vehicle acquisition, asset sales, investment opportunities, and shared-ownership solutions designed to make participation in the transportation sector easier, more accessible, and more profitable.
+            </p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
             {SERVICES.map((s, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
+                transition={{ duration: 0.6, delay: i * 0.05 }}
                 className="service-card"
                 style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '28px', transition: 'all 0.3s', cursor: 'default' }}
                 onMouseEnter={e => { (e.currentTarget as any).style.border = '1px solid rgba(196,168,76,0.4)'; (e.currentTarget as any).style.transform = 'translateY(-4px)'; (e.currentTarget as any).style.boxShadow = '0 20px 50px rgba(0,0,0,0.3)'; }}
                 onMouseLeave={e => { (e.currentTarget as any).style.border = '1px solid rgba(255,255,255,0.08)'; (e.currentTarget as any).style.transform = 'translateY(0)'; (e.currentTarget as any).style.boxShadow = 'none'; }}
               >
-                <div className="s-icon" style={{ display: 'inline-flex', padding: 14, background: 'rgba(196,168,76,0.12)', color: '#f59e0b', borderRadius: 16, marginBottom: 18 }}>{s.icon}</div>
-                <h3 style={{ fontWeight: 800, color: '#ffffff', fontSize: 17, marginBottom: 10 }}>{s.title}</h3>
+                <div style={{ display: 'inline-flex', padding: '6px 14px', background: 'rgba(196,168,76,0.15)', color: '#f59e0b', borderRadius: 12, fontWeight: 900, fontSize: 13, marginBottom: 18, border: '1px solid rgba(196,168,76,0.3)' }}>{s.num}</div>
+                <h3 style={{ fontWeight: 800, color: '#ffffff', fontSize: 18, marginBottom: 12, lineHeight: 1.3 }}>{s.title}</h3>
                 <p style={{ color: '#94a3b8', fontSize: 14, lineHeight: 1.7 }}>{s.desc}</p>
               </motion.div>
             ))}
@@ -505,7 +522,7 @@ export default function WelcomePage() {
               transition={{ duration: 0.6, delay: 0.1 }}
             >
               <h3 style={{ fontWeight: 800, color: 'var(--w-text-primary)', fontSize: 22, marginBottom: 28 }}>We're here to help</h3>
-              {[{ icon: <Phone size={18} />, label: 'Phone', val: '+234 803 000 0000', sub: 'Mon–Fri, 8am to 5pm' }, { icon: <Mail size={18} />, label: 'Email', val: 'info@brahamsama.com', sub: 'We reply within 24 hours' }, { icon: <MapPin size={18} />, label: 'Address', val: 'Kaduna State, Nigeria', sub: 'Head Office & 2 Branch Offices' }].map((item, i) => (
+              {[{ icon: <Phone size={18} />, label: 'Phone', val: '+234 803 000 0000', sub: 'Mon–Fri, 8am to 5pm' }, { icon: <Mail size={18} />, label: 'Email', val: 'info@brahamsama.com', sub: 'We reply within 24 hours' }, { icon: <MapPin size={18} />, label: 'Address', val: 'Suite 42 Zavati Plaza katuru Road Unguwan sarki', sub: 'Head Office & Branch Offices' }].map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: 14, background: 'var(--w-bg-card)', border: '1px solid var(--w-border)', borderRadius: 16, padding: 18, marginBottom: 14 }}>
                   <div style={{ padding: 10, background: 'var(--w-icon-bg)', color: '#f59e0b', borderRadius: 12, flexShrink: 0 }}>{item.icon}</div>
                   <div>
@@ -569,12 +586,12 @@ export default function WelcomePage() {
               <img src="/logo.jpeg" alt="BS" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as any).parentElement.innerHTML = '<div style="width:100%;height:100%;background:#1a2332;display:flex;align-items:center;justify-content:center;font-weight:900;color:#c9a84c;font-size:12px">BS</div>'; }} />
             </div>
             <div>
-              <div style={{ fontWeight: 900, color: '#f59e0b', fontSize: 14 }}>Braham Sama</div>
+              <div style={{ fontWeight: 900, color: '#f59e0b', fontSize: 14 }}>Braham Sama Nig Ltd</div>
               <div style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 3, color: '#94a3b8' }}>Operations & Management</div>
             </div>
           </div>
           <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center' }}>
-            RC No. 7121543 · Kaduna State, Nigeria · © {new Date().getFullYear()} Braham Sama. All rights reserved.
+            RC No. 7121543 · Suite 42 Zavati Plaza katuru Road Unguwan sarki · © {new Date().getFullYear()} Braham Sama Nig Ltd. All rights reserved.
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
