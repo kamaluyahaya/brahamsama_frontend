@@ -78,7 +78,7 @@ const STORIES = [
   { name: 'Ibrahim Yusuf', location: 'Kaduna South', quote: 'Professional service and transparent processes. Braham Sama truly cares about empowering riders like me.', stars: 5, role: 'MD Leader' },
 ];
 
-const NAV_LINKS = ['Services', 'About', 'History', 'Team', 'Success Stories', 'Contact'];
+const NAV_LINKS = ['Services', 'About', 'History', 'Blog', 'Team', 'Success Stories', 'Contact'];
 
 /* ─────────────────────────── COMPONENT ─────────────────────────── */
 
@@ -88,12 +88,22 @@ export default function WelcomePage() {
   const [scrolled, setScrolled] = useState(false);
   const [animating, setAnimating] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactMessage, setContactMessage] = useState('');
   const [submitStatus, setSubmitStatus] = useState<{ type: 'success' | 'error' | null; text: string }>({ type: null, text: '' });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/blog/public')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setBlogPosts(data);
+      })
+      .catch(err => console.error('Failed to fetch blog posts:', err));
+  }, []);
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -433,6 +443,71 @@ export default function WelcomePage() {
         </div>
       </motion.section>
 
+      {/* BLOG / NEWS SECTION */}
+      <motion.section
+        id="blog"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        style={{ padding: '96px 40px', background: '#020617' }}
+      >
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 60 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fbbf24', fontSize: 11, fontWeight: 700, padding: '6px 16px', borderRadius: 99, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 2 }}>
+              Latest Updates & Insights
+            </div>
+            <h2 style={{ fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 900, color: '#ffffff', marginBottom: 14 }}>
+              Company <span className="grad">News & Blog</span>
+            </h2>
+            <p style={{ color: '#94a3b8', fontSize: 17, maxWidth: 540, margin: '0 auto' }}>
+              Stay updated with our latest news, transportation investment insights, and company announcements.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+            {blogPosts.length > 0 ? (
+              blogPosts.map((post, i) => (
+                <motion.div
+                  key={post.id || i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: i * 0.1 }}
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', transition: 'all 0.3s' }}
+                  onMouseEnter={e => { (e.currentTarget as any).style.border = '1px solid rgba(196,168,76,0.4)'; (e.currentTarget as any).style.transform = 'translateY(-4px)'; }}
+                  onMouseLeave={e => { (e.currentTarget as any).style.border = '1px solid rgba(255,255,255,0.08)'; (e.currentTarget as any).style.transform = 'translateY(0)'; }}
+                >
+                  <div>
+                    {post.image_url && (
+                      <div style={{ height: 180, borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
+                        <img src={post.image_url} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                      </div>
+                    )}
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>
+                      {post.category || 'News'}
+                    </div>
+                    <h3 style={{ fontSize: 18, fontWeight: 800, color: '#ffffff', marginBottom: 12, lineHeight: 1.4 }}>
+                      {post.title}
+                    </h3>
+                    <p style={{ color: '#94a3b8', fontSize: 14, lineHeight: 1.6, marginBottom: 20, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {post.summary}
+                    </p>
+                  </div>
+                  <Link href={`/blog/${post.slug || post.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#fbbf24', fontWeight: 800, fontSize: 14, textDecoration: 'none' }}>
+                    Read Full Article <ArrowRight size={15} />
+                  </Link>
+                </motion.div>
+              ))
+            ) : (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 20px', background: 'rgba(255,255,255,0.02)', borderRadius: 20, border: '1px dashed rgba(255,255,255,0.1)', color: '#94a3b8' }}>
+                <p>No blog posts published yet. Check back soon for company updates!</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.section>
+
       {/* TEAM */}
       <motion.section
         id="team"
@@ -468,6 +543,11 @@ export default function WelcomePage() {
                 <p style={{ color: 'var(--w-text-muted)', fontSize: 13, lineHeight: 1.7 }}>{m.desc}</p>
               </motion.div>
             ))}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: 40 }}>
+            <Link href="/ceo-achievements" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', color: '#f59e0b', fontWeight: 800, fontSize: 14, padding: '14px 28px', borderRadius: 14, textDecoration: 'none', transition: 'all 0.2s' }}>
+              View Achievements of the CEO <ArrowRight size={16} />
+            </Link>
           </div>
         </div>
       </motion.section>

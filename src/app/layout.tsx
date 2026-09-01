@@ -21,7 +21,8 @@ import {
   UserCog,
   Building2,
   Wallet,
-  MessageSquare
+  MessageSquare,
+  Newspaper
 } from 'lucide-react';
 import './globals.css';
 
@@ -89,7 +90,7 @@ export default function RootLayout({
       }
     }
 
-    if (!authStatus && pathname !== '/login' && pathname !== '/client-login' && pathname !== '/welcome') {
+    if (!authStatus && pathname !== '/login' && pathname !== '/client-login' && pathname !== '/welcome' && pathname !== '/history' && pathname !== '/ceo-achievements' && !pathname.startsWith('/blog')) {
       router.push('/welcome');
     } else if (authStatus && (parsedUser?.role === 'Client' || parsedUser?.role === 'Manager')) {
       const restrictedRoutes = ['/clients', '/md-leaders', '/staff', '/compliance', '/accounts', '/raiders', '/branches'];
@@ -277,6 +278,11 @@ export default function RootLayout({
         name: 'Messages',
         path: '/messages',
         icon: <MessageSquare className="w-5 h-5" />
+      },
+      {
+        name: 'Blog News',
+        path: '/admin/blog',
+        icon: <Newspaper className="w-5 h-5" />
       }
     ] : []),
     {
@@ -287,7 +293,7 @@ export default function RootLayout({
   ];
 
   // Bypass Sidebar and Headers for Login / Landing views
-  if (pathname === '/login' || pathname === '/client-login' || pathname === '/welcome') {
+  if (pathname === '/login' || pathname === '/client-login' || pathname === '/welcome' || pathname === '/history' || pathname === '/ceo-achievements' || pathname.startsWith('/blog')) {
     return (
       <html lang="en">
         <head>
