@@ -57,8 +57,8 @@ const SERVICES = [
 ];
 
 const TEAM = [
-  { name: 'Braham Sama', role: 'Chief Executive Officer', emoji: '👔', desc: "Visionary leader driving Braham Sama's mission to empower Kaduna State motorcycle riders through accessible finance." },
-  { name: 'Operations Director', role: 'Head of Operations', emoji: '⚙️', desc: 'Overseeing day-to-day branch operations, ensuring excellence in client service and fleet management across all offices.' },
+  { name: 'Braham Sama', role: 'Chief Executive Officer', image: '/team/CEO.jpeg', emoji: '👔', desc: "Visionary leader driving Braham Sama's mission to empower transport asset owners and operators through structured management." },
+  { name: 'Director-General of Operations', role: 'Director-General of Operations (DGO)', image: '/team/DGO.jpeg', emoji: '⚙️', desc: 'Overseeing company-wide branch operations, rider deployment, compliance monitoring, and fleet management nationwide.' },
   { name: 'Finance Officer', role: 'Chief Finance Officer', emoji: '💼', desc: 'Managing the financial health of the organization through disciplined bookkeeping, reporting and strategic planning.' },
   { name: 'Compliance Lead', role: 'Compliance & Risk Manager', emoji: '🛡️', desc: 'Ensuring all operations adhere to internal policies and regulatory frameworks to protect company interests.' },
 ];
@@ -572,7 +572,13 @@ export default function WelcomePage() {
                 onMouseEnter={e => { (e.currentTarget as any).style.border = '1px solid var(--w-border-hover)'; (e.currentTarget as any).style.transform = 'translateY(-6px)'; (e.currentTarget as any).style.boxShadow = '0 20px 50px rgba(0,0,0,0.15)'; }}
                 onMouseLeave={e => { (e.currentTarget as any).style.border = '1px solid var(--w-border)'; (e.currentTarget as any).style.transform = 'translateY(0)'; (e.currentTarget as any).style.boxShadow = 'none'; }}
               >
-                <div style={{ width: 76, height: 76, margin: '0 auto 16px', borderRadius: 20, background: 'linear-gradient(135deg,rgba(196,168,76,0.2),rgba(196,168,76,0.05))', border: '1px solid rgba(196,168,76,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36 }}>{m.emoji}</div>
+                <div style={{ width: 96, height: 96, margin: '0 auto 16px', borderRadius: '50%', overflow: 'hidden', background: 'linear-gradient(135deg,rgba(196,168,76,0.2),rgba(196,168,76,0.05))', border: '2px solid rgba(196,168,76,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, boxShadow: '0 8px 20px rgba(0,0,0,0.15)' }}>
+                  {m.image ? (
+                    <img src={m.image} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                  ) : (
+                    m.emoji
+                  )}
+                </div>
                 <div style={{ fontWeight: 800, color: 'var(--w-text-primary)', fontSize: 16, marginBottom: 4 }}>{m.name}</div>
                 <div style={{ fontSize: 10, fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 12 }}>{m.role}</div>
                 <p style={{ color: 'var(--w-text-muted)', fontSize: 13, lineHeight: 1.7 }}>{m.desc}</p>
