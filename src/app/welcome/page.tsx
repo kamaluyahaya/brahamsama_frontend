@@ -201,6 +201,7 @@ export default function WelcomePage() {
             </div>
           </div>
 
+          <div style={{ display: 'flex', gap: 28, alignItems: 'center' }} className="hidden-mobile">
             {NAV_LINKS.map(l => (
               l === 'History' ? (
                 <Link key={l} href="/history" style={{ color: scrolled ? 'var(--w-text-secondary)' : '#ffffff', fontWeight: 600, fontSize: 14, textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#f59e0b')} onMouseLeave={e => (e.currentTarget.style.color = scrolled ? 'var(--w-text-secondary)' : '#ffffff')}>
@@ -212,6 +213,7 @@ export default function WelcomePage() {
                 </button>
               )
             ))}
+          </div>
 
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <div className="desktop-only">
@@ -228,11 +230,17 @@ export default function WelcomePage() {
         {mobileOpen && (
           <div className="mobile-only" style={{ background: 'var(--w-mobile-bg)', padding: '16px 24px 24px', borderTop: '1px solid var(--w-border)' }}>
             {NAV_LINKS.map(l => (
-              <button key={l} onClick={() => scrollTo(l.toLowerCase().replace(/\s+/g, '-'))} style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid var(--w-border)', color: 'var(--w-text-primary)', fontWeight: 600, fontSize: 15, padding: '14px 0', cursor: 'pointer' }}>
-                {l}
-              </button>
+              l === 'History' ? (
+                <Link key={l} href="/history" onClick={() => setMobileOpen(false)} style={{ display: 'block', width: '100%', textAlign: 'left', textDecoration: 'none', borderBottom: '1px solid var(--w-border)', color: 'var(--w-text-primary)', fontWeight: 600, fontSize: 15, padding: '14px 0' }}>
+                  {l}
+                </Link>
+              ) : (
+                <button key={l} onClick={() => { setMobileOpen(false); scrollTo(l.toLowerCase().replace(/\s+/g, '-')); }} style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid var(--w-border)', color: 'var(--w-text-primary)', fontWeight: 600, fontSize: 15, padding: '14px 0', cursor: 'pointer' }}>
+                  {l}
+                </button>
+              )
             ))}
-            <Link href="/login" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: '#f59e0b', color: '#1a2332', fontWeight: 800, fontSize: 14, padding: '12px 20px', borderRadius: 12, textDecoration: 'none', marginTop: 16 }}>
+            <Link href="/login" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: '#f59e0b', color: '#1a2332', fontWeight: 800, fontSize: 14, padding: '12px 20px', borderRadius: 12, textDecoration: 'none', marginTop: 16 }}>
               Staff Login <ArrowRight size={15} />
             </Link>
           </div>
