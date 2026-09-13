@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Search, Trash2, Mail, Phone, User, RefreshCw, Calendar } from 'lucide-react';
+import { MessageSquare, Search, Trash2, Mail, Phone, User, RefreshCw, Calendar, Send, X, ExternalLink } from 'lucide-react';
 
 interface ContactMessage {
   id: number;
@@ -19,6 +19,13 @@ export default function MessagesPage() {
   const [search, setSearch] = useState('');
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+
+  // Reply modal state
+  const [isReplyOpen, setIsReplyOpen] = useState(false);
+  const [replySubject, setReplySubject] = useState('');
+  const [replyBody, setReplyBody] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
+  const [replyNotification, setReplyNotification] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -66,6 +73,14 @@ export default function MessagesPage() {
     }
   }
 
+  function openReplyModal(msg: ContactMessage) {
+    setSelectedMessage(msg);
+    setReplySubject(`Re: Inquiry from ${msg.name} - Braham Sama`);
+    setReplyBody(`Dear ${msg.name},\n\nThank you for reaching out to Braham Sama Nig Ltd.\n\n\n\nBest regards,\nBraham Sama Operations & Management`);
+    setReplyNotification(null);
+    setIsReplyOpen(true);
+  }
+
   const filtered = messages.filter(m =>
     m.name.toLowerCase().includes(search.toLowerCase()) ||
     (m.email && m.email.toLowerCase().includes(search.toLowerCase())) ||
@@ -104,10 +119,10 @@ export default function MessagesPage() {
             <span className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/20">
               <MessageSquare className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </span>
-            Contact Messages
+            Contact Messages & Replies
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
-            Messages submitted from the public-facing contact form.
+            Manage public contact form inquiries and send direct email replies.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -188,9 +203,19 @@ export default function MessagesPage() {
                     <Trash2 className={`w-4 h-4 ${deleting === msg.id ? 'animate-pulse' : ''}`} />
                   </button>
                 </div>
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-                  <Calendar className="w-3 h-3 text-slate-400" />
-                  <span className="text-xs text-slate-400 dark:text-slate-500">{formatDate(msg.created_at)}</span>
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3 h-3 text-slate-400" />
+                    <span className="text-xs text-slate-400 dark:text-slate-500">{formatDate(msg.created_at)}</span>
+                  </div>
+                  {msg.email && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); openReplyModal(msg); }}
+                      className="text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center gap-1"
+                    >
+                      <Mail className="w-3 h-3" /> Reply
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -219,15 +244,19 @@ export default function MessagesPage() {
                 </div>
 
                 <div className="space-y-4 mb-6">
-                  {selectedMessage.email && (
+                  {selectedMessage.email ? (
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50">
                       <Mail className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Email</p>
-                        <a href={`mailto:${selectedMessage.email}`} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Email Address</p>
+                        <a href={`mailto:${selectedMessage.email}`} className="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate block">
                           {selectedMessage.email}
                         </a>
                       </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 text-amber-700 dark:text-amber-400 text-xs">
+                      No email address provided by user for this submission.
                     </div>
                   )}
                   {selectedMessage.phone && (
@@ -258,24 +287,139 @@ export default function MessagesPage() {
                 </div>
 
                 {selectedMessage.email && (
-                  <a
-                    href={`mailto:${selectedMessage.email}?subject=Re: Your message to Braham Sama`}
-                    className="mt-4 flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors"
-                  >
-                    <Mail className="w-4 h-4" />
-                    Reply via Email
-                  </a>
+                  <div className="mt-6 space-y-2">
+                    <button
+                      onClick={() => openReplyModal(selectedMessage)}
+                      className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors shadow-sm"
+                    >
+                      <Mail className="w-4 h-4" />
+                      Compose Email Reply
+                    </button>
+                    <a
+                      href={`mailto:${selectedMessage.email}?subject=${encodeURIComponent(`Re: Inquiry from ${selectedMessage.name} - Braham Sama`)}&body=${encodeURIComponent(`Dear ${selectedMessage.name},\n\n`)}`}
+                      className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-600 dark:text-slate-300 font-medium text-xs transition-colors"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+                      Open in Mail Client
+                    </a>
+                  </div>
                 )}
               </div>
             ) : (
               <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-10 flex flex-col items-center justify-center text-center">
                 <MessageSquare className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-3" />
-                <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Select a message to view details</p>
+                <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Select a message to view details & reply</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Admin Reply Composer Modal */}
+      {isReplyOpen && selectedMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+              <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                <Mail className="w-5 h-5" />
+                <h3 className="font-bold text-slate-900 dark:text-white">Reply to {selectedMessage.name}</h3>
+              </div>
+              <button
+                onClick={() => setIsReplyOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                  Recipient Email
+                </label>
+                <input
+                  type="text"
+                  readOnly
+                  value={selectedMessage.email || ''}
+                  className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 rounded-xl text-sm font-medium border border-slate-200 dark:border-slate-800 outline-none cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  value={replySubject}
+                  onChange={e => setReplySubject(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-xl text-sm border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                  Reply Message
+                </label>
+                <textarea
+                  rows={6}
+                  value={replyBody}
+                  onChange={e => setReplyBody(e.target.value)}
+                  className="w-full p-3 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-xl text-sm border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none font-sans"
+                />
+              </div>
+
+              {replyNotification && (
+                <div
+                  className={`p-3 rounded-xl text-xs font-medium ${
+                    replyNotification.type === 'success'
+                      ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                      : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'
+                  }`}
+                >
+                  {replyNotification.text}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between gap-3 bg-slate-50 dark:bg-slate-800/50">
+              <a
+                href={`mailto:${selectedMessage.email}?subject=${encodeURIComponent(replySubject)}&body=${encodeURIComponent(replyBody)}`}
+                onClick={() => {
+                  setReplyNotification({ type: 'success', text: 'Opened in your mail app!' });
+                  setTimeout(() => setIsReplyOpen(false), 1200);
+                }}
+                className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white font-medium"
+              >
+                <ExternalLink className="w-3.5 h-3.5" /> Launch Default Mail Client
+              </a>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsReplyOpen(false)}
+                  className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <a
+                  href={`mailto:${selectedMessage.email}?subject=${encodeURIComponent(replySubject)}&body=${encodeURIComponent(replyBody)}`}
+                  onClick={() => {
+                    setReplyNotification({ type: 'success', text: 'Email reply dispatched to mail client.' });
+                    setTimeout(() => setIsReplyOpen(false), 1200);
+                  }}
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm flex items-center gap-2 shadow-sm transition-colors"
+                >
+                  <Send className="w-4 h-4" /> Send Email Reply
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       )}
     </div>
   );
 }
+

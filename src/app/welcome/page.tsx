@@ -348,7 +348,7 @@ export default function WelcomePage() {
               Building Financial <br /><span className="grad">Futures for Riders</span>
             </h2>
             <p style={{ color: 'var(--w-text-secondary)', fontSize: 17, lineHeight: 1.8, marginBottom: 20 }}>
-              Braham Sama Operations & Management System was established to bridge the financial gap for motorcycle riders in Kaduna State. We provide affordable hire-purchase financing that empowers riders to own their vehicles and grow their livelihoods.
+              Braham Sama Operations & Management System was established to bridge the financial gap for motorcycle riders in Kaduna State. We provide structured transportation asset management and ownership solutions that empower riders to operate vehicles and grow their livelihoods.
             </p>
             <p style={{ color: 'var(--w-text-muted)', lineHeight: 1.8, marginBottom: 28 }}>
               With a robust digital management platform, we track every client, disbursement, return, and branch operation in real-time — ensuring transparency, accountability and growth for all stakeholders.
@@ -651,7 +651,7 @@ export default function WelcomePage() {
               transition={{ duration: 0.6, delay: 0.1 }}
             >
               <h3 style={{ fontWeight: 800, color: 'var(--w-text-primary)', fontSize: 22, marginBottom: 28 }}>We're here to help</h3>
-              {[{ icon: <Phone size={18} />, label: 'Phone', val: '+234 803 000 0000', sub: 'Mon–Fri, 8am to 5pm' }, { icon: <Mail size={18} />, label: 'Email', val: 'info@brahamsama.com', sub: 'We reply within 24 hours' }, { icon: <MapPin size={18} />, label: 'Address', val: 'Suite 42 Zavati Plaza katuru Road Unguwan sarki', sub: 'Head Office & Branch Offices' }].map((item, i) => (
+              {[{ icon: <Phone size={18} />, label: 'Phone', val: '07066204483', sub: 'Mon–Fri, 8am to 5pm' }, { icon: <Mail size={18} />, label: 'Email', val: 'info@brahamsama.com', sub: 'We reply within 24 hours' }, { icon: <MapPin size={18} />, label: 'Address', val: 'Suite 3 Zavati Plaza Katuru Road Unguwan Sarki', sub: 'Head Office & Branch Offices' }].map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: 14, background: 'var(--w-bg-card)', border: '1px solid var(--w-border)', borderRadius: 16, padding: 18, marginBottom: 14 }}>
                   <div style={{ padding: 10, background: 'var(--w-icon-bg)', color: '#f59e0b', borderRadius: 12, flexShrink: 0 }}>{item.icon}</div>
                   <div>
@@ -691,7 +691,7 @@ export default function WelcomePage() {
                   <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, color: 'var(--w-text-muted)', marginBottom: 8 }}>Message</label>
                   <textarea rows={4} required placeholder="How can we help you?" value={contactMessage} onChange={e => setContactMessage(e.target.value)} style={{ width: '100%', background: 'var(--w-bg-input)', border: '1px solid var(--w-border)', color: 'var(--w-text-primary)', fontSize: 14, padding: '12px 14px', borderRadius: 12, outline: 'none', resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
                 </div>
-                
+
                 {submitStatus.type && (
                   <div style={{ padding: '10px 14px', borderRadius: 10, fontSize: 13, background: submitStatus.type === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', color: submitStatus.type === 'success' ? '#10b981' : '#ef4444', border: `1px solid ${submitStatus.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
                     {submitStatus.text}
@@ -720,7 +720,7 @@ export default function WelcomePage() {
             </div>
           </div>
           <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center' }}>
-            RC No. 7121543 · Suite 42 Zavati Plaza katuru Road Unguwan sarki · © {new Date().getFullYear()} Braham Sama Nig Ltd. All rights reserved.
+            RC No. 7121543 · Suite 3 Zavati Plaza Katuru Road Unguwan Sarki · © {new Date().getFullYear()} Braham Sama Nig Ltd. All rights reserved.
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
