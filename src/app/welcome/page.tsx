@@ -216,8 +216,11 @@ export default function WelcomePage() {
           </div>
 
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <div className="desktop-only">
-              <Link href="/login" style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f59e0b', color: '#1a2332', fontWeight: 800, fontSize: 13, padding: '10px 20px', borderRadius: 12, textDecoration: 'none', transition: 'all 0.2s' }}>
+            <div className="desktop-only" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <Link href="/client-login" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)', color: '#ffffff', fontWeight: 700, fontSize: 13, padding: '10px 18px', borderRadius: 12, textDecoration: 'none', transition: 'all 0.2s' }}>
+                Client Login
+              </Link>
+              <Link href="/login" style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f59e0b', color: '#1a2332', fontWeight: 800, fontSize: 13, padding: '10px 18px', borderRadius: 12, textDecoration: 'none', transition: 'all 0.2s' }}>
                 Staff Login <ArrowRight size={15} />
               </Link>
             </div>
@@ -240,9 +243,14 @@ export default function WelcomePage() {
                 </button>
               )
             ))}
-            <Link href="/login" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: '#f59e0b', color: '#1a2332', fontWeight: 800, fontSize: 14, padding: '12px 20px', borderRadius: 12, textDecoration: 'none', marginTop: 16 }}>
-              Staff Login <ArrowRight size={15} />
-            </Link>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 16 }}>
+              <Link href="/client-login" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--w-bg-card)', border: '1px solid var(--w-border)', color: 'var(--w-text-primary)', fontWeight: 700, fontSize: 13, padding: '12px 14px', borderRadius: 12, textDecoration: 'none' }}>
+                Client Login
+              </Link>
+              <Link href="/login" onClick={() => setMobileOpen(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, background: '#f59e0b', color: '#1a2332', fontWeight: 800, fontSize: 13, padding: '12px 14px', borderRadius: 12, textDecoration: 'none' }}>
+                Staff Login <ArrowRight size={14} />
+              </Link>
+            </div>
           </div>
         )}
       </nav>
