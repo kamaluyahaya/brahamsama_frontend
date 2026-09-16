@@ -272,7 +272,7 @@ setMcForm({
                   <tr
                     key={client.id}
                     className="hover:bg-slate-100/40 dark:hover:bg-slate-800/20 cursor-pointer transition-colors"
-                    onClick={() => { setSelectedClient(client); setCredUsername(client.username || ''); setCredPassword(''); setShowDetailModal(true); }}
+                    onClick={() => router.push(`/clients/${client.id}`)}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       {client.passport_url ? (
@@ -291,7 +291,7 @@ setMcForm({
                       <div className="flex gap-2">
                         <button
                           className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 transition-all flex items-center gap-1.5"
-                          onClick={() => { setSelectedClient(client); setCredUsername(client.username || ''); setCredPassword(''); setShowDetailModal(true); }}
+                          onClick={() => router.push(`/clients/${client.id}`)}
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>View Details</span>
@@ -318,254 +318,14 @@ setMcForm({
                     </td>
                   </tr>
                 ))}
+
               </tbody>
             </table>
           </div>
         )}
       </div>
-      {/* Detail View Modal */}
-      {showDetailModal && selectedClient && (
-        <ModalPortal>
-          <div
-            className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 overflow-y-auto"
-            onClick={() => setShowDetailModal(false)}
-          >
-            <div
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-2xl max-h-[90vh] flex flex-col rounded-[0.5rem] shadow-2xl overflow-hidden my-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 p-6 pb-4">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Client: {selectedClient.name}</h3>
-                <button className="text-slate-400 hover:text-slate-650 dark:hover:text-white" onClick={() => setShowDetailModal(false)}>
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+      {/* Motorcycle Assignment Modal */}
 
-              <div className="overflow-y-auto flex-1 p-6 scrollbar-none space-y-6">
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="flex flex-col items-center gap-2 text-center md:border-r border-slate-150 dark:border-slate-850 pr-4">
-                    {selectedClient.passport_url ? (
-                      <img src={selectedClient.passport_url} alt={selectedClient.name} className="w-32 h-32 rounded-2xl object-cover border-2 border-violet-500/40 shadow-xl" />
-                    ) : (
-                      <div className="w-32 h-32 rounded-2xl bg-slate-100 dark:bg-slate-955 flex items-center justify-center text-slate-500 text-4xl border border-slate-200 dark:border-slate-800">
-                        <User className="w-12 h-12" />
-                      </div>
-                    )}
-                    <span className="text-xs text-slate-550 mt-1 font-semibold uppercase">Passport ID Photo</span>
-                  </div>
-
-                  <div className="md:col-span-2 space-y-3 text-sm">
-                    <div className="grid grid-cols-2 py-1 border-b border-slate-150 dark:border-slate-850">
-                      <span className="font-semibold text-slate-500 dark:text-slate-400">File Number:</span>
-                      <span className="text-slate-800 dark:text-white font-bold">{selectedClient.file_no || 'N/A'}</span>
-                    </div>
-                    <div className="grid grid-cols-2 py-1 border-b border-slate-150 dark:border-slate-850">
-                      <span className="font-semibold text-slate-500 dark:text-slate-400">Phone Number:</span>
-                      <span className="text-slate-800 dark:text-white">{selectedClient.phone || 'N/A'}</span>
-                    </div>
-                    <div className="grid grid-cols-2 py-1 border-b border-slate-150 dark:border-slate-850">
-                      <span className="font-semibold text-slate-500 dark:text-slate-400">Email Address:</span>
-                      <span className="text-slate-800 dark:text-white">{selectedClient.email_address || 'N/A'}</span>
-                    </div>
-                    <div className="grid grid-cols-2 py-1 border-b border-slate-150 dark:border-slate-850">
-                      <span className="font-semibold text-slate-500 dark:text-slate-400">Government ID:</span>
-                      <span className="text-slate-800 dark:text-white">{selectedClient.id_details || 'N/A'}</span>
-                    </div>
-                    <div className="grid grid-cols-2 py-1 border-b border-slate-150 dark:border-slate-850">
-                      <span className="font-semibold text-slate-500 dark:text-slate-400">Office Branch:</span>
-                      <span className="text-slate-800 dark:text-white">{selectedClient.branch_name || selectedClient.office || 'N/A'}</span>
-                    </div>
-                    <div className="flex flex-col py-1">
-                      <span className="font-semibold text-slate-500 dark:text-slate-400">Home Address:</span>
-                      <span className="text-slate-800 dark:text-white mt-1">{selectedClient.residential_address || 'N/A'}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-200 dark:border-slate-800 pt-6">
-                  <div className="space-y-2 bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-850 rounded-xl p-4">
-                    <h4 className="text-xs font-bold text-violet-650 dark:text-violet-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                      <CreditCard className="w-3.5 h-3.5" />
-                      <span>Bank Account Details</span>
-                    </h4>
-                    <p className="text-sm text-slate-700 dark:text-slate-300"><strong>Bank:</strong> {selectedClient.bank_name || 'N/A'}</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300"><strong>Account Name:</strong> {selectedClient.account_name || 'N/A'}</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-300"><strong>Account No:</strong> {selectedClient.account_number || 'N/A'}</p>
-                  </div>
-
-                  <div className="space-y-2 bg-slate-50 dark:bg-slate-955/40 border border-slate-200 dark:border-slate-850 rounded-xl p-4 md:col-span-2">
-                    <h4 className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                      <Briefcase className="w-3.5 h-3.5" />
-                      <span>Assigned Tricycles ({clientMotorcycles.length})</span>
-                    </h4>
-                    {clientMotorcycles.length === 0 ? (
-                      <p className="text-xs text-slate-500 py-2">No tricycles assigned to this client yet.</p>
-                    ) : (
-                      <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 text-xs">
-                        <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left">
-                          <thead className="bg-slate-100 dark:bg-slate-900">
-                            <tr>
-                              <th className="px-3 py-2 font-semibold">File No</th>
-                              <th className="px-3 py-2 font-semibold">Vehicle Details</th>
-                              <th className="px-3 py-2 font-semibold">Chassis No</th>
-                              <th className="px-3 py-2 font-semibold">Purchase Date</th>
-                              <th className="px-3 py-2 font-semibold">Total Disbursed</th>
-                              <th className="px-3 py-2 font-semibold">Utility Charges</th>
-                              <th className="px-3 py-2 font-semibold">Daily Return</th>
-                              <th className="px-3 py-2 font-semibold">Term</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                            {clientMotorcycles.map((mc) => (
-                              <tr key={mc.id} className="hover:bg-slate-55 dark:hover:bg-slate-850/50">
-                                <td className="px-3 py-2 whitespace-nowrap">{mc.file_no || 'N/A'}</td>
-                                <td className="px-3 py-2 whitespace-nowrap">{mc.vehicle_type_chassis || 'N/A'}</td>
-                                <td className="px-3 py-2 whitespace-nowrap">{mc.chassis_no || 'N/A'}</td>
-                                <td className="px-3 py-2 whitespace-nowrap">{mc.date_of_purchase || 'N/A'}</td>
-                                <td className="px-3 py-2 whitespace-nowrap">₦{parseFloat(mc.total_disbursed_amount || 0).toLocaleString()}</td>
-                                <td className="px-3 py-2 whitespace-nowrap">₦{parseFloat(mc.utility_charges || 0).toLocaleString()}</td>
-                                <td className="px-3 py-2 whitespace-nowrap">₦{parseFloat(mc.daily_return || 0).toLocaleString()}</td>
-                                <td className="px-3 py-2 whitespace-nowrap">{mc.duration_of_completion || 'N/A'}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="border-t border-slate-200 dark:border-slate-800 pt-6 space-y-4">
-                  <h4 className="text-xs font-bold text-violet-650 dark:text-violet-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5" />
-                    <span>Client Portal Access Credentials</span>
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Username</label>
-                      <input
-                        type="text"
-                        value={credUsername}
-                        onChange={(e) => setCredUsername(e.target.value)}
-                        className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
-                        placeholder="Configure login username"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Password (Leave blank to keep current)</label>
-                      <input
-                        type="password"
-                        value={credPassword}
-                        onChange={(e) => setCredPassword(e.target.value)}
-                        className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
-                        placeholder="Configure login password"
-                      />
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleUpdateCredentials}
-                    disabled={isUpdatingCreds}
-                    className="bg-violet-605 hover:bg-violet-500 text-white font-semibold text-xs px-4 py-2 rounded-xl transition-all shadow-md active:scale-95"
-                  >
-                    {isUpdatingCreds ? 'Updating...' : 'Save Portal Credentials'}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-800 p-6 pt-4">
-                <button
-                  className="bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5"
-                  onClick={() => deleteClient(selectedClient.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Delete Record</span>
-                </button>
-                <div className="flex gap-2">
-                  <button
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 active:scale-95"
-                    onClick={() => {
-                      // NATIVE CSV EXPORT TRIGGER
-                      let csv = '\uFEFF';
-                      csv += `"BRAHAM SAMA OPERATIONS & MANAGEMENT SYSTEM"\n`;
-                      csv += `"RC No: 7121543 | Kano State Branch"\n`;
-                      csv += `"CEO: Braham Sama"\n`;
-                      csv += `"Report: CLIENT PROFILE REPORT"\n`;
-                      csv += `"Generated on: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}"\n\n"RECORD METADATA"\n`;
-
-                      const metadata = [
-                        ['Client Name', selectedClient.name],
-                        ['File Number', selectedClient.file_no],
-                        ['Phone Number', selectedClient.phone],
-                        ['Email Address', selectedClient.email_address],
-                        ['Office Branch', selectedClient.branch_name || selectedClient.office || 'N/A'],
-                        ['Home Address', selectedClient.residential_address],
-                        ['Government ID Details', selectedClient.id_details],
-                        ['Bank Name', selectedClient.bank_name],
-                        ['Account Name', selectedClient.account_name],
-                        ['Account Number', selectedClient.account_number],
-                        ['Vehicle Type / Chassis', selectedClient.vehicle_type_chassis],
-                        ['No of Motorcycles', selectedClient.no_of_motorcycles],
-                        ['Chassis Number', selectedClient.chassis_no],
-                        ['Total Disbursed Amount', selectedClient.total_disbursed_amount ? `₦${selectedClient.total_disbursed_amount.toLocaleString()}` : '₦0'],
-                        ['Utility Charges', selectedClient.utility_charges ? `₦${selectedClient.utility_charges.toLocaleString()}` : '₦0'],
-                        ['Contract Term', selectedClient.duration_of_completion],
-                        ['Date of Purchase', selectedClient.date_of_purchase],
-                        ['First Disbursement Date', selectedClient.date_of_first_disbursement],
-                        ['Final Disbursement Date', selectedClient.final_disbursement]
-                      ];
-
-                      metadata.forEach(([l, v]) => {
-                        const labelEsc = String(l).replace(/"/g, '""');
-                        const valEsc = String(v ?? 'N/A').replace(/"/g, '""');
-                        csv += `"${labelEsc}","${valEsc}"\n`;
-                      });
-
-                      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `client_profile_${selectedClient.file_no || 'export'}_${new Date().toISOString().split('T')[0]}.csv`;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                    }}
-                  >
-                    <span>Export CSV</span>
-                  </button>
-
-                  <button
-                    className="bg-slate-700 hover:bg-slate-650 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 active:scale-95"
-                    onClick={() => {
-                      // NATIVE PRINT TRIGGER (Instant print using iframe to avoid new tab)
-                      let frame = document.getElementById('print-iframe') as HTMLIFrameElement;
-                      if (!frame) {
-                        frame = document.createElement('iframe');
-                        frame.id = 'print-iframe';
-                        frame.style.position = 'fixed';
-                        frame.style.right = '0';
-                        frame.style.bottom = '0';
-                        frame.style.width = '0';
-                        frame.style.height = '0';
-                        frame.style.border = '0';
-                        document.body.appendChild(frame);
-                      }
-                      const doc = frame.contentDocument || frame.contentWindow?.document;
-                      if (doc) {
-                        doc.open();
-                        doc.write(buildNativePrintHTML(selectedClient, true));
-                        doc.close();
-                      }
-                    }}
-                  >
-                    <span>Print</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </ModalPortal>
-      )}
 
       {showAssignModal && assigningClient && (
         <ModalPortal>
