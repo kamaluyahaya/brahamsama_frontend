@@ -7,19 +7,12 @@ import {
   Users,
   User,
   Plus,
-  Trash2,
   X,
   Search,
-  CreditCard,
-  Briefcase,
   Eye,
-  Printer,
   PlusCircle
 } from 'lucide-react';
-import ReportPreviewModal from '@/components/ReportPreviewModal';
 import ModalPortal from '@/components/ModalPortal';
-import { buildNativePrintHTML } from '@/utils/printClient';
-
 
 interface Client {
   id: number;
@@ -57,21 +50,10 @@ export default function ClientsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Form State
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [showReportModal, setShowReportModal] = useState(false);
-
-  // Portal Credentials Editor State
-  const [credUsername, setCredUsername] = useState('');
-  const [credPassword, setCredPassword] = useState('');
-  const [isUpdatingCreds, setIsUpdatingCreds] = useState(false);
-
   // Motorcycle Assignment State
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assigningClient, setAssigningClient] = useState<Client | null>(null);
-  const [clientMotorcycles, setClientMotorcycles] = useState<any[]>([]);
-const [mcForm, setMcForm] = useState({
+  const [mcForm, setMcForm] = useState({
     file_no: '',
     vehicle_type_chassis: '',
     chassis_no: '',
@@ -84,17 +66,6 @@ const [mcForm, setMcForm] = useState({
     daily_return: ''
   });
   const [isAssigning, setIsAssigning] = useState(false);
-
-  useEffect(() => {
-    if (selectedClient) {
-      fetch(`/api/clients/${selectedClient.id}/motorcycles`)
-        .then(res => res.json())
-        .then(data => setClientMotorcycles(data))
-        .catch(err => console.error(err));
-    } else {
-      setClientMotorcycles([]);
-    }
-  }, [selectedClient]);
 
   const handleAssignMotorcycle = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,7 +81,7 @@ const [mcForm, setMcForm] = useState({
         alert('Tricycle successfully assigned to client!');
         setShowAssignModal(false);
         setAssigningClient(null);
-setMcForm({
+        setMcForm({
           file_no: '',
           vehicle_type_chassis: '',
           chassis_no: '',
@@ -156,54 +127,11 @@ setMcForm({
     } catch (err) {
       console.error('Error fetching clients:', err);
     } finally {
+
       setLoading(false);
     }
   }
 
-  const deleteClient = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this client record?')) return;
-    try {
-      const res = await fetch(`/api/clients/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        fetchClients();
-        setShowDetailModal(false);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleUpdateCredentials = async () => {
-    if (!selectedClient) return;
-    if (!credUsername.trim()) {
-      alert('Username is required.');
-      return;
-    }
-    setIsUpdatingCreds(true);
-    try {
-      const res = await fetch(`/api/clients/${selectedClient.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: credUsername.trim(),
-          password: credPassword ? credPassword : undefined
-        })
-      });
-      if (res.ok) {
-        alert('Portal credentials updated successfully!');
-        fetchClients();
-        setShowDetailModal(false);
-      } else {
-        const data = await res.json();
-        alert('Error: ' + data.message);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Connection to server failed.');
-    } finally {
-      setIsUpdatingCreds(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
