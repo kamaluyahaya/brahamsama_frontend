@@ -43,6 +43,16 @@ interface Client {
   password?: string | null;
 }
 
+function slugify(text: string): string {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-');
+}
+
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [search, setSearch] = useState('');
@@ -132,13 +142,12 @@ export default function ClientsPage() {
     }
   }
 
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
           <Users className="w-5 h-5 text-violet-500" />
-          <span>Client Administration (Clerks & Sec Logs)</span>
+          <span>Client Administration (Clerks &amp; Sec Logs)</span>
         </h2>
         <Link
           href="/clients/new"
@@ -196,75 +205,79 @@ export default function ClientsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900/20">
-                {clients.map((client: any) => (
-                  <tr
-                    key={client.id}
-                    className="hover:bg-slate-100/40 dark:hover:bg-slate-800/20 cursor-pointer transition-colors"
-                    onClick={() => router.push(`/clients/${client.id}`)}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {client.passport_url ? (
-                        <img src={client.passport_url} alt="Passport" className="w-10 h-10 rounded-full object-cover border border-slate-300 dark:border-slate-705" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-                          <User className="w-5 h-5" />
+                {clients.map((client: any) => {
+                  const clientSlug = slugify(client.name) || client.id;
+                  return (
+                    <tr
+                      key={client.id}
+                      className="hover:bg-slate-100/40 dark:hover:bg-slate-800/20 cursor-pointer transition-colors"
+                      onClick={() => router.push(`/clients/${clientSlug}`)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {client.passport_url ? (
+                          <img src={client.passport_url} alt="Passport" className="w-10 h-10 rounded-full object-cover border border-slate-300 dark:border-slate-705" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+                            <User className="w-5 h-5" />
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap font-bold text-slate-850 dark:text-white">{client.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{client.phone || 'N/A'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-650 dark:text-slate-350 font-bold">{client.tricycles_count || 0}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{client.date_of_first_disbursement || 'N/A'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex gap-2">
+                          <button
+                            className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 transition-all flex items-center gap-1.5"
+                            onClick={() => router.push(`/clients/${clientSlug}`)}
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>View Details</span>
+                          </button>
+                          <button
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-sm"
+                            onClick={() => { setAssigningClient(client); setMcForm({
+                              file_no: '',
+                              vehicle_type_chassis: '',
+                              chassis_no: '',
+                              date_of_purchase: '',
+                              duration_of_completion: '',
+                              date_of_first_disbursement: '',
+                              final_disbursement: '',
+                              total_disbursed_amount: '',
+                              utility_charges: '',
+                              daily_return: ''
+                            }); setShowAssignModal(true); }}
+                          >
+                            <PlusCircle className="w-3.5 h-3.5" />
+                            <span>Assign</span>
+                          </button>
                         </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap font-bold text-slate-850 dark:text-white">{client.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{client.phone || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-slate-650 dark:text-slate-350 font-bold">{client.tricycles_count || 0}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{client.date_of_first_disbursement || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex gap-2">
-                        <button
-                          className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 transition-all flex items-center gap-1.5"
-                          onClick={() => router.push(`/clients/${client.id}`)}
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>View Details</span>
-                        </button>
-                        <button
-                          className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-sm"
-                          onClick={() => { setAssigningClient(client); setMcForm({
-                            file_no: '',
-                            vehicle_type_chassis: '',
-                            chassis_no: '',
-                            date_of_purchase: '',
-                            duration_of_completion: '',
-                            date_of_first_disbursement: '',
-                            final_disbursement: '',
-                            total_disbursed_amount: '',
-                            utility_charges: '',
-                            daily_return: ''
-                          }); setShowAssignModal(true); }}
-                        >
-                          <PlusCircle className="w-3.5 h-3.5" />
-                          <span>Assign</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
+
       {/* Motorcycle Assignment Modal */}
 
 
       {showAssignModal && assigningClient && (
         <ModalPortal>
           <div
-            className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-0 md:p-4"
             onClick={() => { setShowAssignModal(false); setAssigningClient(null); }}
           >
             <div
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-2xl shadow-2xl relative overflow-hidden transition-all transform scale-100 flex flex-col max-h-[90vh]"
+              className="bg-white dark:bg-slate-900 border-0 md:border border-slate-200 dark:border-slate-800 rounded-none md:rounded-3xl w-full h-full md:h-auto max-w-none md:max-w-2xl max-h-none md:max-h-[90vh] shadow-2xl relative overflow-hidden transition-all transform scale-100 flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
+
               <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-slate-800">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
                   Assign Tricycle to {assigningClient.name}
