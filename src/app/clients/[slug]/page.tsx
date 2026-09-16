@@ -411,17 +411,19 @@ export default function ClientDetailPage() {
           </button>
           <button
             onClick={handleExportCSV}
-            className="bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
+            className="bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs px-3 sm:px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
+            title="Export CSV"
           >
             <Download className="w-4 h-4" />
-            <span>Export CSV</span>
+            <span className="hidden sm:inline">Export CSV</span>
           </button>
           <button
             onClick={handlePrint}
-            className="bg-slate-700 hover:bg-slate-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
+            className="bg-slate-700 hover:bg-slate-600 text-white font-semibold text-xs px-3 sm:px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
+            title="Print Profile"
           >
             <Printer className="w-4 h-4" />
-            <span>Print Profile</span>
+            <span className="hidden sm:inline">Print Profile</span>
           </button>
           <button
             onClick={() => setShowDeleteModal(true)}
@@ -565,7 +567,7 @@ export default function ClientDetailPage() {
             <div className="flex justify-between items-center">
               <h3 className="text-sm font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider flex items-center gap-2">
                 <Bike className="w-4 h-4" />
-                <span>Assigned Bicycles / Fleet ({motorcycles.length})</span>
+                <span>Assigned Bicycles ({motorcycles.length})</span>
               </h3>
               <button
                 onClick={handleOpenAssign}
