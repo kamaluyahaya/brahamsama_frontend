@@ -28,10 +28,13 @@ interface Motorcycle {
 
 export default function AssetsFinancialPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [clientsList, setClientsList] = useState<any[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string | number>('');
+  const [clientProfile, setClientProfile] = useState<any>(null);
   const [motorcycles, setMotorcycles] = useState<Motorcycle[]>([]);
   const [returns, setReturns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<number | string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -41,37 +44,70 @@ export default function AssetsFinancialPage() {
       setCurrentUser(parsed);
 
       if (parsed.role === 'Client') {
-        const clientId = parsed.id;
-
-        Promise.all([
-          fetch(`/api/clients/${clientId}/motorcycles`).then(res => res.ok ? res.json() : []),
-          fetch(`/api/clients/${clientId}/returns`).then(res => res.ok ? res.json() : [])
-        ])
-          .then(([mcs, rts]) => {
-            setMotorcycles(mcs);
-            setReturns(rts);
-          })
-          .catch(err => console.error('Error fetching assets data:', err))
-          .finally(() => setLoading(false));
+        setSelectedClientId(parsed.id);
+        loadClientAssets(parsed.id);
       } else {
-        setLoading(false);
+        fetch('/api/clients')
+          .then(res => res.ok ? res.json() : [])
+          .then(data => {
+            setClientsList(data);
+            if (data.length > 0) {
+              setSelectedClientId(data[0].id);
+              loadClientAssets(data[0].id);
+            } else {
+              setLoading(false);
+            }
+          })
+          .catch(err => {
+            console.error('Error fetching clients:', err);
+            setLoading(false);
+          });
       }
     }
   }, []);
 
+  const loadClientAssets = (cId: string | number) => {
+    setLoading(true);
+    Promise.all([
+      fetch(`/api/clients/${cId}`).then(res => res.ok ? res.json() : null),
+      fetch(`/api/clients/${cId}/motorcycles`).then(res => res.ok ? res.json() : []),
+      fetch(`/api/clients/${cId}/returns`).then(res => res.ok ? res.json() : [])
+    ])
+      .then(([clientData, mcs, rts]) => {
+        setClientProfile(clientData);
+        setMotorcycles(mcs);
+        setReturns(rts);
+      })
+      .catch(err => console.error('Error fetching assets data:', err))
+      .finally(() => setLoading(false));
+  };
+
+  const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setSelectedClientId(val);
+    if (val) loadClientAssets(val);
+  };
+
   const toAmount = (value: string | number) => parseFloat(String(value || 0)) || 0;
 
-  const totalAssetValue = motorcycles.reduce((sum, mc) => sum + toAmount(mc.total_disbursed_amount), 0);
-  const totalUtilityCharges = motorcycles.reduce((sum, mc) => sum + toAmount(mc.utility_charges), 0);
+  const rawAssetValue = motorcycles.reduce((sum, mc) => sum + toAmount(mc.total_disbursed_amount), 0);
+  const totalAssetValue = rawAssetValue > 0 ? rawAssetValue : toAmount(clientProfile?.total_disbursed_amount);
+
+  const rawUtilityCharges = motorcycles.reduce((sum, mc) => sum + toAmount(mc.utility_charges), 0);
+  const totalUtilityCharges = rawUtilityCharges > 0 ? rawUtilityCharges : toAmount(clientProfile?.utility_charges);
+
   const totalReturns = returns.reduce((sum, r) => sum + toAmount(r.amount), 0);
+  const totalTricyclesCount = motorcycles.length > 0
+    ? motorcycles.length
+    : (parseInt(clientProfile?.no_of_motorcycles || '0') || (clientProfile?.chassis_no || clientProfile?.vehicle_type_chassis ? 1 : 0));
 
   const formatNaira = (value: number) => `₦${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const stats = [
     {
       label: 'Total Tricycles',
-      value: loading ? '...' : String(motorcycles.length),
-      sub: 'Registered under your profile',
+      value: loading ? '...' : String(totalTricyclesCount),
+      sub: 'Registered under profile',
       icon: <Bike className="w-4 h-4 text-amber-500" />,
       border: 'border-l-amber-500 hover:border-l-amber-400'
     },
@@ -107,13 +143,33 @@ export default function AssetsFinancialPage() {
             Client Assets & Financial Overview
           </h2>
           <p className="text-xs text-white/80 font-medium tracking-wide">
-            {currentUser ? `Viewing fleet summary for ${currentUser.name}` : 'Viewing fleet summary'} &bull; Total tricycle holdings and per-unit details.
+            {clientProfile ? `Viewing fleet summary for ${clientProfile.name}` : (currentUser ? `Viewing fleet summary for ${currentUser.name}` : 'Viewing fleet summary')} &bull; Total tricycle holdings and per-unit details.
           </p>
         </div>
-        <div className="flex items-center gap-2 z-10 shrink-0 bg-white/10 border border-white/20 px-4 py-2.5 rounded-xl">
-          <Wallet className="w-4 h-4" />
-          <span className="text-xs font-bold uppercase tracking-wider">Assets Ledger</span>
-        </div>
+
+        {currentUser?.role !== 'Client' && clientsList.length > 0 && (
+          <div className="z-10 shrink-0 bg-white/10 border border-white/20 px-3 py-2 rounded-xl flex items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-white/90">Select Client:</span>
+            <select
+              value={selectedClientId}
+              onChange={handleClientChange}
+              className="bg-slate-900/80 text-white text-xs font-bold rounded-lg px-3 py-1.5 border border-white/30 focus:outline-none"
+            >
+              {clientsList.map(c => (
+                <option key={c.id} value={c.id} className="bg-slate-900 text-white">
+                  {c.name} ({c.file_no || `ID: ${c.id}`})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {currentUser?.role === 'Client' && (
+          <div className="flex items-center gap-2 z-10 shrink-0 bg-white/10 border border-white/20 px-4 py-2.5 rounded-xl">
+            <Wallet className="w-4 h-4" />
+            <span className="text-xs font-bold uppercase tracking-wider">Assets Ledger</span>
+          </div>
+        )}
       </div>
 
       <h3 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-2">

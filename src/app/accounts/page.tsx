@@ -64,6 +64,10 @@ export default function AccountsPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [staffList, setStaffList] = useState<any[]>([]);
+  const [clientVehicles, setClientVehicles] = useState<any[]>([]);
+  const [vehiclesLoading, setVehiclesLoading] = useState(false);
+  const [clientVehicleCounts, setClientVehicleCounts] = useState<Record<number, number>>({});
+  const [disbursementError, setDisbursementError] = useState('');
 
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -88,6 +92,7 @@ export default function AccountsPage() {
     recorded_by: '',
     client_id: '',
     staff_id: '',
+    selected_vehicle_id: '',
   });
 
   // Report Generator State
@@ -289,16 +294,70 @@ export default function AccountsPage() {
     }
   };
 
+  // Fetch vehicles whenever client selection + Disbursement category changes
+  const fetchClientVehicles = async (clientId: string) => {
+    if (!clientId) {
+      setClientVehicles([]);
+      setExpenseForm(prev => ({ ...prev, selected_vehicle_id: '' }));
+      return;
+    }
+    try {
+      setVehiclesLoading(true);
+      const res = await fetch(`/api/clients/${clientId}/motorcycles`);
+      if (res.ok) {
+        const data = await res.json();
+        setClientVehicles(data);
+        setExpenseForm(prev => ({ ...prev, selected_vehicle_id: '' }));
+        setDisbursementError('');
+      } else {
+        setClientVehicles([]);
+      }
+    } catch {
+      setClientVehicles([]);
+    } finally {
+      setVehiclesLoading(false);
+    }
+  };
+
+  // Computed: currently selected vehicle object
+  const selectedVehicleObj = clientVehicles.find(
+    v => String(v.id) === String(expenseForm.selected_vehicle_id)
+  ) ?? null;
+
   const handleExpenseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!expenseForm.amount) return alert('Amount is required');
+    setDisbursementError('');
+
+    // Disbursement-specific validation
+    if (expenseForm.category === 'Disbursement') {
+      if (!expenseForm.client_id) return alert('Please select a client for disbursement.');
+      if (!expenseForm.selected_vehicle_id) {
+        setDisbursementError('Please select the vehicle to disburse from.');
+        return;
+      }
+      if (!expenseForm.amount) {
+        setDisbursementError('Amount is required.');
+        return;
+      }
+      const maxAmount = selectedVehicleObj ? parseFloat(selectedVehicleObj.total_disbursed_amount || 0) : 0;
+      if (parseFloat(expenseForm.amount) > maxAmount) {
+        setDisbursementError(`Amount exceeds the vehicle's available disbursement of ₦${maxAmount.toLocaleString()}.`);
+        return;
+      }
+    } else {
+      if (!expenseForm.amount) return alert('Amount is required');
+    }
 
     try {
       const payload = {
         date: expenseForm.date,
         amount: parseFloat(expenseForm.amount),
         category: expenseForm.category,
-        description: expenseForm.description,
+        description: expenseForm.description
+          ? expenseForm.description
+          : selectedVehicleObj
+            ? `Disbursement for vehicle: ${selectedVehicleObj.vehicle_type_chassis || ''} (${selectedVehicleObj.chassis_no || selectedVehicleObj.file_no || ''})`
+            : expenseForm.description,
         recorded_by: currentUser ? currentUser.name : 'System',
         client_id: expenseForm.client_id || null,
         staff_id: currentUser && currentUser.role !== 'Client' && currentUser.role !== 'Manager' ? currentUser.id : null,
@@ -319,7 +378,10 @@ export default function AccountsPage() {
           recorded_by: '',
           client_id: '',
           staff_id: '',
+          selected_vehicle_id: '',
         });
+        setClientVehicles([]);
+        setDisbursementError('');
         fetchExpenses();
       }
     } catch (err) {
@@ -567,20 +629,28 @@ export default function AccountsPage() {
             </div>
 
             <form onSubmit={handleExpenseSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Expense Date</label>
-                  <input type="date" value={expenseForm.date} onChange={(e) => setExpenseForm(prev => ({ ...prev, date: e.target.value }))} required className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Amount (₦)</label>
-                  <input type="number" placeholder="Expense Amount" value={expenseForm.amount} onChange={(e) => setExpenseForm(prev => ({ ...prev, amount: e.target.value }))} required className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
-                </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Expense Date</label>
+                <input type="date" value={expenseForm.date} onChange={(e) => setExpenseForm(prev => ({ ...prev, date: e.target.value }))} required className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm" />
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Category</label>
-                <select value={expenseForm.category} onChange={(e) => setExpenseForm(prev => ({ ...prev, category: e.target.value }))} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm">
+                <select
+                  value={expenseForm.category}
+                  onChange={(e) => {
+                    const cat = e.target.value;
+                    setExpenseForm(prev => ({ ...prev, category: cat, selected_vehicle_id: '', amount: '' }));
+                    setDisbursementError('');
+                    // Clear vehicle list when switching away from Disbursement
+                    if (cat !== 'Disbursement') {
+                      setClientVehicles([]);
+                    } else if (expenseForm.client_id) {
+                      fetchClientVehicles(expenseForm.client_id);
+                    }
+                  }}
+                  className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
+                >
                   <option value="Disbursement">Disbursement to Client</option>
                   <option value="Administration">Administration</option>
                   <option value="Maintenance">Vehicle Maintenance</option>
@@ -592,18 +662,147 @@ export default function AccountsPage() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Beneficiary Client (Optional - if sending money to Client)</label>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">
+                  {expenseForm.category === 'Disbursement' ? 'Beneficiary Client *' : 'Beneficiary Client (Optional)'}
+                </label>
                 <select
                   value={expenseForm.client_id}
-                  onChange={(e) => setExpenseForm(prev => ({ ...prev, client_id: e.target.value }))}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setExpenseForm(prev => ({ ...prev, client_id: val, selected_vehicle_id: '' }));
+                    setDisbursementError('');
+                    if (expenseForm.category === 'Disbursement') {
+                      fetchClientVehicles(val);
+                    } else {
+                      setClientVehicles([]);
+                    }
+                  }}
                   className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
                 >
-                  <option value="">-- General Office Expense (No Client Link) --</option>
+                  <option value="">-- {expenseForm.category === 'Disbursement' ? 'Select Client to Disburse To' : 'General Office Expense (No Client Link)'} --</option>
                   {clients.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option
+                      key={c.id}
+                      value={c.id}
+                      disabled={expenseForm.category === 'Disbursement' && (c.tricycles_count === 0 || !c.tricycles_count)}
+                    >
+                      {c.name}{expenseForm.category === 'Disbursement' && (c.tricycles_count === 0 || !c.tricycles_count) ? ' (No vehicles)' : ''}
+                    </option>
                   ))}
                 </select>
+                {expenseForm.category === 'Disbursement' && (
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500">Only clients with registered vehicles can receive disbursements.</p>
+                )}
               </div>
+
+              {/* Step 2: Vehicle Selector — shown when Disbursement + client selected */}
+              {expenseForm.category === 'Disbursement' && expenseForm.client_id && (
+                <div className="rounded-xl border border-amber-400/40 bg-amber-50/60 dark:bg-amber-950/20 dark:border-amber-500/20 p-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span className="text-xs font-extrabold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+                      Select Vehicle to Disburse From *
+                    </span>
+                  </div>
+
+                  {vehiclesLoading ? (
+                    <p className="text-xs text-slate-500 animate-pulse">Loading vehicles…</p>
+                  ) : clientVehicles.length === 0 ? (
+                    <div className="flex items-center gap-2 p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-300/40 dark:border-rose-500/20 rounded-lg">
+                      <span className="text-rose-500 text-lg">⚠</span>
+                      <p className="text-xs text-rose-600 dark:text-rose-400 font-semibold">This client has no registered vehicles. Disbursement is not allowed.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {clientVehicles.map((v: any) => {
+                        const available = parseFloat(v.total_disbursed_amount || 0);
+                        const isSelected = String(expenseForm.selected_vehicle_id) === String(v.id);
+                        return (
+                          <label
+                            key={v.id}
+                            className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-amber-500 bg-amber-100/70 dark:bg-amber-900/30 dark:border-amber-400'
+                                : 'border-amber-200/60 dark:border-amber-700/30 hover:border-amber-400/60 hover:bg-amber-50 dark:hover:bg-amber-900/10'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="selected_vehicle"
+                              value={String(v.id)}
+                              checked={isSelected}
+                              onChange={() => {
+                                setExpenseForm(prev => ({ ...prev, selected_vehicle_id: String(v.id), amount: '' }));
+                                setDisbursementError('');
+                              }}
+                              className="mt-0.5 accent-amber-500"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <span className="font-bold text-slate-800 dark:text-white text-sm">
+                                  {v.vehicle_type_chassis || 'Vehicle'}
+                                  {v.file_no && <span className="ml-1.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 px-1.5 py-0.5 rounded">File: {v.file_no}</span>}
+                                </span>
+                                <span className="font-extrabold text-rose-600 dark:text-rose-400 text-sm whitespace-nowrap">
+                                  Available: ₦{available.toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
+                                Chassis: {v.chassis_no || '—'} &nbsp;|&nbsp; First Disbursed: {v.date_of_first_disbursement || '—'}
+                              </div>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step 3: Amount — shown below vehicle picker; for Disbursement only appears after vehicle is chosen */}
+              {(expenseForm.category !== 'Disbursement' || (expenseForm.category === 'Disbursement' && expenseForm.selected_vehicle_id)) && (
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Amount (₦) *</label>
+                    {selectedVehicleObj && (
+                      <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+                        Max: ₦{parseFloat(selectedVehicleObj.total_disbursed_amount || 0).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                  <input
+                    type="number"
+                    placeholder={selectedVehicleObj ? `Enter amount (max ₦${parseFloat(selectedVehicleObj.total_disbursed_amount || 0).toLocaleString()})` : 'Expense Amount'}
+                    value={expenseForm.amount}
+                    min={0}
+                    max={selectedVehicleObj ? parseFloat(selectedVehicleObj.total_disbursed_amount || 0) : undefined}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setExpenseForm(prev => ({ ...prev, amount: val }));
+                      if (selectedVehicleObj) {
+                        const max = parseFloat(selectedVehicleObj.total_disbursed_amount || 0);
+                        if (parseFloat(val) > max) {
+                          setDisbursementError(`₦${parseFloat(val).toLocaleString()} exceeds the vehicle's available disbursement of ₦${max.toLocaleString()}.`);
+                        } else {
+                          setDisbursementError('');
+                        }
+                      }
+                    }}
+                    required
+                    className={`bg-slate-50 dark:bg-slate-955 border rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 text-sm ${
+                      disbursementError
+                        ? 'border-rose-400 focus:ring-rose-500/50'
+                        : 'border-slate-300 dark:border-slate-800 focus:ring-violet-500/50'
+                    }`}
+                  />
+                  {disbursementError && (
+                    <div className="flex items-center gap-1.5 mt-1 text-xs text-rose-600 dark:text-rose-400 font-semibold">
+                      <span>⚠</span>
+                      <span>{disbursementError}</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Description / Details</label>

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Bike,
   Plus,
@@ -18,7 +19,8 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
-  Users
+  Users,
+  Edit2
 } from 'lucide-react';
 import ReportPreviewModal from '@/components/ReportPreviewModal';
 import ModalPortal from '@/components/ModalPortal';
@@ -91,6 +93,18 @@ export default function RaidersPage() {
       .then(res => res.ok ? res.json() : [])
       .then(data => setAvailableVehicles(data))
       .catch(err => console.error('Error fetching available vehicles:', err));
+
+    fetch('/api/raiders/next-tempo-no')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && data.nextTempoNo) {
+          setFormData(prev => ({
+            ...prev,
+            tempo_reg_no: prev.tempo_reg_no || data.nextTempoNo
+          }));
+        }
+      })
+      .catch(err => console.error('Error fetching next tempo reg no:', err));
   }, [showAddModal]);
 
   const steps = [
@@ -123,6 +137,7 @@ export default function RaidersPage() {
   });
 
   const [passportFile, setPassportFile] = useState<File | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -177,17 +192,10 @@ export default function RaidersPage() {
     }
   }
 
-  async function viewRaiderDetails(id: number) {
-    try {
-      const res = await fetch(`/api/raiders/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setSelectedRaider(data);
-        setShowDetailModal(true);
-      }
-    } catch (err) {
-      console.error('Error fetching raider details:', err);
-    }
+  const router = useRouter();
+
+  function viewRaiderDetails(id: number) {
+    router.push(`/raiders/${id}`);
   }
 
   const getRemainingDays = (dateStr: string) => {
@@ -232,8 +240,9 @@ export default function RaidersPage() {
   };
 
   const handleNext = () => {
-    if (step === 1 && !formData.name) {
-      alert('Raider Full Name is required.');
+    setFormError(null);
+    if (step === 1 && !formData.name.trim()) {
+      setFormError('Raider Full Name is required.');
       return;
     }
     if (step < 4) {
@@ -242,12 +251,18 @@ export default function RaidersPage() {
   };
 
   const handlePrev = () => {
+    setFormError(null);
     setStep(prev => prev - 1);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name) return alert('Name is required');
+    setFormError(null);
+    if (!formData.name.trim()) {
+      setStep(1);
+      setFormError('Raider Full Name is required.');
+      return;
+    }
     if (step < 4) {
       handleNext();
       return;
@@ -270,6 +285,7 @@ export default function RaidersPage() {
 
       if (res.ok) {
         setShowAddModal(false);
+        setStep(1);
         setFormData({
           name: '',
           phone: '',
@@ -292,14 +308,15 @@ export default function RaidersPage() {
         });
         setPassportFile(null);
         setPassportPreview(null);
+        setFormError(null);
         fetchRaiders();
       } else {
         const errData = await res.json();
-        alert('Error: ' + errData.message);
+        setFormError(errData.message || 'Failed to save raider record');
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to save raider record');
+      setFormError('Failed to save raider record. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -315,6 +332,40 @@ export default function RaidersPage() {
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  // Change manager state
+  const [newMgrId, setNewMgrId] = useState<string>('');
+  const [isChangingMgr, setIsChangingMgr] = useState(false);
+
+  const handleChangeManager = async () => {
+    if (!selectedRaider) return;
+    setIsChangingMgr(true);
+    try {
+      const res = await fetch(`/api/raiders/${selectedRaider.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ md_leader_id: newMgrId === '' ? null : Number(newMgrId) }),
+      });
+      if (res.ok) {
+        // Re-fetch detail
+        const detailRes = await fetch(`/api/raiders/${selectedRaider.id}`);
+        if (detailRes.ok) {
+          const detailData = await detailRes.json();
+          setSelectedRaider(detailData);
+          setNewMgrId('');
+        }
+        fetchRaiders();
+      } else {
+        const errData = await res.json();
+        alert('Error: ' + errData.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to change manager.');
+    } finally {
+      setIsChangingMgr(false);
     }
   };
 
@@ -407,13 +458,13 @@ export default function RaidersPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{raider.tempo_reg_no || 'N/A'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{raider.date_of_appointment || 'N/A'}</td>
                     <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        className="bg-slate-105 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-707 transition-all flex items-center gap-1.5"
-                        onClick={() => viewRaiderDetails(raider.id)}
+                      <Link
+                        href={`/raiders/${raider.id}`}
+                        className="bg-slate-105 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-707 transition-all flex items-center gap-1.5 inline-flex"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>View file</span>
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -500,6 +551,13 @@ export default function RaidersPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {formError && (
+                <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold flex items-center justify-between animate-fadeIn">
+                  <span>{formError}</span>
+                  <button type="button" onClick={() => setFormError(null)} className="text-rose-400 hover:text-rose-600 font-bold ml-2">×</button>
+                </div>
+              )}
+
               {/* STEP 1: Raider Profile Info */}
               {step === 1 && (
                 <div className="space-y-4">
@@ -533,7 +591,18 @@ export default function RaidersPage() {
                     <div className="md:col-span-2 space-y-4">
                       <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase">Full Name *</label>
-                        <input type="text" name="name" value={formData.name} onChange={handleInputChange} required className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-sm" placeholder="Raider Full Name" />
+                        <input
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          onChange={(e) => {
+                            setFormError(null);
+                            handleInputChange(e);
+                          }}
+                          required
+                          className={`bg-slate-50 dark:bg-slate-955 border ${formError && !formData.name.trim() ? 'border-rose-500 focus:ring-rose-500/50' : 'border-slate-300 dark:border-slate-800 focus:ring-cyan-500/50'} rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 text-sm transition-colors`}
+                          placeholder="Raider Full Name"
+                        />
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase">Phone Number</label>
@@ -542,7 +611,7 @@ export default function RaidersPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase">Date of Appointment</label>
                       <input type="date" name="date_of_appointment" value={formData.date_of_appointment} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-sm" />
@@ -557,15 +626,6 @@ export default function RaidersPage() {
                         <option value="">-- Choose Manager --</option>
                         {managers.map(m => (
                           <option key={m.id} value={m.id}>{m.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase">Assign Client</label>
-                      <select name="client_id" value={formData.client_id} onChange={handleInputChange} className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 text-sm">
-                        <option value="">-- Choose Client --</option>
-                        {clients.map(c => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
                         ))}
                       </select>
                     </div>
@@ -707,7 +767,6 @@ export default function RaidersPage() {
                           <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Appointment:</span> <span className="font-bold text-slate-700 dark:text-white">{formData.date_of_appointment || 'N/A'}</span></div>
                           <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Govt ID:</span> <span className="font-bold text-slate-700 dark:text-white">{formData.govt_id || 'N/A'}</span></div>
                           <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Manager:</span> <span className="font-bold text-slate-700 dark:text-white">{managers.find(m => m.id.toString() === formData.md_leader_id)?.name || 'None'}</span></div>
-                          <div><span className="text-slate-400 dark:text-slate-500 font-semibold">Client:</span> <span className="font-bold text-slate-700 dark:text-white">{clients.find(c => c.id.toString() === formData.client_id)?.name || 'None'}</span></div>
                           <div className="sm:col-span-2"><span className="text-slate-400 dark:text-slate-500 font-semibold">Address:</span> <span className="font-bold text-slate-700 dark:text-white">{formData.address || 'N/A'}</span></div>
                         </div>
                       </div>
@@ -781,219 +840,7 @@ export default function RaidersPage() {
       </ModalPortal>
       )}
 
-      {/* Detail View Modal */}
-      {showDetailModal && selectedRaider && (
-        <ModalPortal>
-          <div 
-            className="fixed inset-0 bg-slate-900/60 dark:bg-slate-955/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 overflow-y-auto"
-            onClick={() => setShowDetailModal(false)}
-          >
-            <div 
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-3xl max-h-[90vh] flex flex-col rounded-[0.5rem] shadow-2xl overflow-hidden my-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 p-6 pb-4">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Raider File Details: {selectedRaider.name}</h3>
-              <button className="text-slate-400 hover:text-slate-655 dark:hover:text-white" onClick={() => setShowDetailModal(false)}>
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="overflow-y-auto flex-1 p-6 scrollbar-none space-y-6">
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex flex-col items-center gap-2 text-center md:border-r border-slate-150 dark:border-slate-850 pr-4">
-                  {selectedRaider.passport_url ? (
-                    <img src={selectedRaider.passport_url} alt={selectedRaider.name} className="w-32 h-32 rounded-2xl object-cover border-2 border-cyan-500/40 shadow-xl" />
-                  ) : (
-                    <div className="w-32 h-32 rounded-2xl bg-slate-100 dark:bg-slate-955 flex items-center justify-center text-slate-505 text-4xl border border-slate-200 dark:border-slate-80">
-                      <User className="w-12 h-12" />
-                    </div>
-                  )}
-                  <span className="text-xs text-slate-500 mt-1 font-semibold uppercase">Raider Photo ID</span>
-                </div>
-
-                <div className="md:col-span-2 space-y-3 text-sm">
-                  <div className="grid grid-cols-2 py-1 border-b border-slate-150 dark:border-slate-850">
-                    <span className="font-semibold text-slate-500 dark:text-slate-400">Phone Number:</span>
-                    <span className="text-slate-800 dark:text-white">{selectedRaider.phone || 'N/A'}</span>
-                  </div>
-                  <div className="grid grid-cols-2 py-1 border-b border-slate-150 dark:border-slate-850">
-                    <span className="font-semibold text-slate-500 dark:text-slate-400">Government ID:</span>
-                    <span className="text-slate-800 dark:text-white">{selectedRaider.govt_id || 'N/A'}</span>
-                  </div>
-                  <div className="grid grid-cols-2 py-1 border-b border-slate-150 dark:border-slate-850">
-                    <span className="font-semibold text-slate-500 dark:text-slate-400">Appointment Date:</span>
-                    <span className="text-slate-800 dark:text-white">{selectedRaider.date_of_appointment || 'N/A'}</span>
-                  </div>
-                  <div className="grid grid-cols-2 py-1 border-b border-slate-150 dark:border-slate-850">
-                    <span className="font-semibold text-slate-500 dark:text-slate-400">Assigned Manager:</span>
-                    <span className="text-slate-800 dark:text-white font-bold">{selectedRaider.md_leader_name || 'None'}</span>
-                  </div>
-                  <div className="grid grid-cols-2 py-1 border-b border-slate-150 dark:border-slate-850">
-                    <span className="font-semibold text-slate-500 dark:text-slate-400">Assigned Client:</span>
-                    <span className="text-slate-800 dark:text-white font-bold">{selectedRaider.client_name || 'None'}</span>
-                  </div>
-                  <div className="flex flex-col py-1">
-                    <span className="font-semibold text-slate-500 dark:text-slate-400">Home Address:</span>
-                    <span className="text-slate-800 dark:text-white mt-1">{selectedRaider.address || 'N/A'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-200 dark:border-slate-800 pt-6">
-                <div className="space-y-4">
-                  <div className="bg-slate-50 dark:bg-slate-955/40 border border-slate-200 dark:border-slate-855 rounded-xl p-4 space-y-2">
-                    <h4 className="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5" />
-                      <span>Asset Guarantor & Shortee Surety</span>
-                    </h4>
-                    <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Guarantor:</strong> {selectedRaider.guarantor_name || 'N/A'} ({selectedRaider.guarantor_phone || 'N/A'})</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Guarantor ID:</strong> {selectedRaider.guarantor_gov_id || 'N/A'}</p>
-                    <div className="border-t border-slate-200 dark:border-slate-800 my-2 pt-2">
-                      <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">* Shortee Surety</p>
-                      <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Name:</strong> {selectedRaider.surety_name || 'N/A'}</p>
-                      <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Phone:</strong> {selectedRaider.surety_phone || 'N/A'}</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-50 dark:bg-slate-955/40 border border-slate-200 dark:border-slate-855 rounded-xl p-4 space-y-2">
-                    <h4 className="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Bike className="w-3.5 h-3.5" />
-                      <span>Asset Specifications</span>
-                    </h4>
-                    <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Plate Number:</strong> {selectedRaider.plate_no || 'N/A'}</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Tempo Reg:</strong> {selectedRaider.tempo_reg_no || 'N/A'}</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Purchase Date:</strong> {selectedRaider.date_of_purchase || 'N/A'}</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Contract Terms:</strong> {selectedRaider.duration_of_completion || 'N/A'}</p>
-                    <p className="text-sm text-slate-700 dark:text-slate-305"><strong>Asset Cost:</strong> ₦{selectedRaider.amount ? selectedRaider.amount.toLocaleString() : 'N/A'}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="bg-slate-50 dark:bg-slate-955/40 border border-slate-200 dark:border-slate-855 rounded-xl p-4 space-y-2">
-                    <h4 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>Returns/Payments History</span>
-                    </h4>
-                    {selectedRaider.payments && selectedRaider.payments.length === 0 ? (
-                      <p className="text-xs text-slate-500">No payment logs recorded yet.</p>
-                    ) : (
-                      <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
-                        {selectedRaider.payments?.map(pay => (
-                          <div key={pay.id} className="flex justify-between items-center p-2.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-lg text-xs">
-                            <span className="text-slate-600 dark:text-slate-300">📅 {pay.date} (Rec: {pay.receipt_no})</span>
-                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">₦{pay.amount.toLocaleString()}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="bg-slate-50 dark:bg-slate-955/40 border border-slate-200 dark:border-slate-855 rounded-xl p-4 space-y-2">
-                    <h4 className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <ShieldAlert className="w-3.5 h-3.5" />
-                      <span>Queries & Compliance History</span>
-                    </h4>
-                    {selectedRaider.compliance && selectedRaider.compliance.length === 0 ? (
-                      <p className="text-xs text-slate-500">No compliance logs issued.</p>
-                    ) : (
-                      <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
-                        {selectedRaider.compliance?.map(comp => (
-                          <div key={comp.id} className="p-2.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-lg text-xs space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="font-semibold text-slate-800 dark:text-slate-200">{comp.subject}</span>
-                              <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold border ${comp.status === 'Resolved' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                                }`}>{comp.status}</span>
-                            </div>
-                            <p className="text-slate-500 dark:text-slate-400 mt-1">{comp.details}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-800 p-6 pt-4">
-                <button
-                  className="bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5"
-                  onClick={() => deleteRaider(selectedRaider.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Delete Raider</span>
-                </button>
-                <div className="flex gap-2">
-                  <button
-                    className="bg-violet-600 hover:bg-violet-500 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5"
-                    onClick={() => setShowReportModal(true)}
-                  >
-                    <Printer className="w-4 h-4" />
-                    <span>Print / Export</span>
-                  </button>
-                  <button
-                    className="bg-slate-200 hover:bg-slate-350 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all"
-                    onClick={() => setShowDetailModal(false)}
-                  >
-                    Close File
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </ModalPortal>
-      )}
-
-          {selectedRaider && (
-            <ReportPreviewModal
-              isOpen={showReportModal}
-              onClose={() => setShowReportModal(false)}
-              title="Raider Asset Profile Report"
-              passportUrl={selectedRaider.passport_url}
-              recordData={[
-                { label: 'Raider Name', value: selectedRaider.name },
-                { label: 'Phone Number', value: selectedRaider.phone },
-                { label: 'Appointment Date', value: selectedRaider.date_of_appointment },
-                { label: 'Assigned Manager', value: selectedRaider.md_leader_name || 'None' },
-                { label: 'Assigned Client', value: selectedRaider.client_name || 'None' },
-                { label: 'Home Address', value: selectedRaider.address },
-                { label: 'Government ID', value: selectedRaider.govt_id },
-                { label: 'Guarantor Name', value: selectedRaider.guarantor_name },
-                { label: 'Guarantor Phone', value: selectedRaider.guarantor_phone },
-                { label: 'Guarantor Govt ID', value: selectedRaider.guarantor_gov_id },
-                { label: 'Shortee Surety Name', value: selectedRaider.surety_name },
-                { label: 'Shortee Surety Phone', value: selectedRaider.surety_phone },
-                { label: 'Tempo Registration No', value: selectedRaider.tempo_reg_no },
-                { label: 'Plate Registration No', value: selectedRaider.plate_no },
-                { label: 'Asset Purchase Date', value: selectedRaider.date_of_purchase },
-                { label: 'Contract terms', value: selectedRaider.duration_of_completion },
-                { label: 'Asset Cost', value: selectedRaider.amount ? `₦${selectedRaider.amount.toLocaleString()}` : 'N/A' },
-              ]}
-              tables={[
-                {
-                  title: 'Returns / Payments History',
-                  headers: ['Date', 'Receipt No', 'Amount'],
-                  rows: (selectedRaider.payments || []).map(p => [
-                    p.date,
-                    p.receipt_no,
-                    `₦${p.amount.toLocaleString()}`
-                  ])
-                },
-                {
-                  title: 'Queries & Compliance History',
-                  headers: ['Date', 'Subject', 'Details', 'Status'],
-                  rows: (selectedRaider.compliance || []).map(c => [
-                    c.date,
-                    c.subject,
-                    c.details,
-                    c.status
-                  ])
-                }
-              ]}
-            />
-          )}
-        </div>
-      );
+    </div>
+  );
 }
 

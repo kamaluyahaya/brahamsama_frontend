@@ -81,6 +81,46 @@ export default function MessagesPage() {
     setIsReplyOpen(true);
   }
 
+  async function handleSendEmailReply() {
+    if (!selectedMessage || !selectedMessage.email) return;
+    if (!replySubject.trim() || !replyBody.trim()) {
+      setReplyNotification({ type: 'error', text: 'Subject and reply message body cannot be empty.' });
+      return;
+    }
+
+    setSendingReply(true);
+    setReplyNotification(null);
+
+    try {
+      const res = await fetch('/api/contact/reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: selectedMessage.email,
+          name: selectedMessage.name,
+          subject: replySubject,
+          message: replyBody,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setReplyNotification({ type: 'success', text: data.message || 'Email sent successfully!' });
+        setTimeout(() => {
+          setIsReplyOpen(false);
+          setReplyNotification(null);
+        }, 1800);
+      } else {
+        setReplyNotification({ type: 'error', text: data.message || 'Failed to send email reply.' });
+      }
+    } catch (err: any) {
+      console.error(err);
+      setReplyNotification({ type: 'error', text: 'Error connecting to server. Please try again.' });
+    } finally {
+      setSendingReply(false);
+    }
+  }
+
   const filtered = messages.filter(m =>
     m.name.toLowerCase().includes(search.toLowerCase()) ||
     (m.email && m.email.toLowerCase().includes(search.toLowerCase())) ||
@@ -404,16 +444,15 @@ export default function MessagesPage() {
                 >
                   Cancel
                 </button>
-                <a
-                  href={`mailto:${selectedMessage.email}?subject=${encodeURIComponent(replySubject)}&body=${encodeURIComponent(replyBody)}`}
-                  onClick={() => {
-                    setReplyNotification({ type: 'success', text: 'Email reply dispatched to mail client.' });
-                    setTimeout(() => setIsReplyOpen(false), 1200);
-                  }}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm flex items-center gap-2 shadow-sm transition-colors"
+                <button
+                  type="button"
+                  disabled={sendingReply}
+                  onClick={handleSendEmailReply}
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold text-sm flex items-center gap-2 shadow-sm transition-colors"
                 >
-                  <Send className="w-4 h-4" /> Send Email Reply
-                </a>
+                  <Send className={`w-4 h-4 ${sendingReply ? 'animate-spin' : ''}`} />
+                  {sendingReply ? 'Sending Email...' : 'Send Email Reply'}
+                </button>
               </div>
             </div>
           </div>

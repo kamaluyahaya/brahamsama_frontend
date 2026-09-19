@@ -22,6 +22,8 @@ interface ReportPreviewModalProps {
   recordData: ReportField[];
   tables?: ReportTable[];
   passportUrl?: string;
+  payments?: any[];
+  compliance?: any[];
 }
 
 // Helper: get field value by label

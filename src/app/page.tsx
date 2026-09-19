@@ -16,7 +16,8 @@ import {
   Calendar,
   AlertTriangle,
   BellRing,
-  Search
+  Search,
+  AlertCircle
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -146,28 +147,34 @@ export default function Dashboard() {
       try {
         setLoading(true);
 
-        // Fetch riders under client
-        const raidersRes = await fetch(`/api/clients/${clientId}/raiders`);
+        const [clientRes, raidersRes, returnsRes, compRes, mcRes] = await Promise.all([
+          fetch(`/api/clients/${clientId}`),
+          fetch(`/api/clients/${clientId}/raiders`),
+          fetch(`/api/clients/${clientId}/returns`),
+          fetch(`/api/clients/${clientId}/compliance`),
+          fetch(`/api/clients/${clientId}/motorcycles`)
+        ]);
+
+        const clientData = clientRes.ok ? await clientRes.json() : null;
         const raiders = raidersRes.ok ? await raidersRes.json() : [];
-        setClientRaiders(raiders);
-
-        // Fetch returns under client
-        const returnsRes = await fetch(`/api/clients/${clientId}/returns`);
         const returns = returnsRes.ok ? await returnsRes.json() : [];
-        setClientReturns(returns);
-
-        // Fetch compliance under client
-        const compRes = await fetch(`/api/clients/${clientId}/compliance`);
         const compliance = compRes.ok ? await compRes.json() : [];
-        setClientCompliance(compliance);
-
-        // Fetch motorcycles under client
-        const mcRes = await fetch(`/api/clients/${clientId}/motorcycles`);
         const motorcycles = mcRes.ok ? await mcRes.json() : [];
+
+        setClientRaiders(raiders);
+        setClientReturns(returns);
+        setClientCompliance(compliance);
         setClientMotorcycles(motorcycles);
-        const totalAmountPurchase = motorcycles.reduce((sum: number, mc: any) => sum + parseFloat(mc.total_disbursed_amount || 0), 0);
-        const totalUtilityCharges = motorcycles.reduce((sum: number, mc: any) => sum + parseFloat(mc.utility_charges || 0), 0);
-        const totalTricycles = motorcycles.length;
+
+        let totalAmountPurchase = motorcycles.reduce((sum: number, mc: any) => sum + parseFloat(mc.total_disbursed_amount || 0), 0);
+        let totalUtilityCharges = motorcycles.reduce((sum: number, mc: any) => sum + parseFloat(mc.utility_charges || 0), 0);
+        let totalTricycles = motorcycles.length;
+
+        if (motorcycles.length === 0 && clientData) {
+          totalAmountPurchase = parseFloat(clientData.total_disbursed_amount || 0);
+          totalUtilityCharges = parseFloat(clientData.utility_charges || 0);
+          totalTricycles = parseInt(clientData.no_of_motorcycles || 0) || (clientData.chassis_no || clientData.vehicle_type_chassis ? 1 : 0);
+        }
 
         // Calculate statistics
         const totalRiders = raiders.length;
@@ -555,35 +562,35 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm border-l-4 border-l-violet-500 hover:border-l-violet-400 transition-all duration-300">
             <div className="flex justify-between items-start">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Amount Purchase</div>
-              <TrendingUp className="w-4 h-4 text-violet-500" />
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Fleet Riders</div>
+              <Users className="w-4 h-4 text-violet-500" />
             </div>
             <div className="text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white mt-2">
-              ₦{loading ? '...' : clientStats.totalAmountPurchase.toLocaleString()}
+              {loading ? '...' : clientStats.totalRiders}
             </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Total purchase price of assigned fleet</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Active motorcyclists in your fleet</p>
           </div>
 
           <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm border-l-4 border-l-emerald-500 hover:border-l-emerald-400 transition-all duration-300">
             <div className="flex justify-between items-start">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Utility Charges</div>
-              <Coins className="w-4 h-4 text-emerald-500" />
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Returns Collected</div>
+              <TrendingUp className="w-4 h-4 text-emerald-500" />
             </div>
             <div className="text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400 mt-2">
-              ₦{loading ? '...' : clientStats.totalUtilityCharges.toLocaleString()}
+              ₦{loading ? '...' : clientStats.totalReturns.toLocaleString()}
             </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Total utility charges of assigned fleet</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Cumulative returns logged from riders</p>
           </div>
 
           <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm border-l-4 border-l-rose-500 hover:border-l-rose-400 transition-all duration-300">
             <div className="flex justify-between items-start">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Daily Returns</div>
-              <Coins className="w-4 h-4 text-rose-500" />
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Overdue Alerts</div>
+              <AlertCircle className="w-4 h-4 text-rose-500" />
             </div>
-            <div className="text-3xl font-extrabold tracking-tight text-rose-605 dark:text-rose-400 mt-2">
-              ₦{loading ? '...' : dailyReturns.toLocaleString()}
+            <div className="text-3xl font-extrabold tracking-tight text-rose-600 dark:text-rose-400 mt-2">
+              {loading ? '...' : clientStats.overdueRiders}
             </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Total daily returns rate of assigned fleet</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Riders pending weekly returns</p>
           </div>
 
           <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm border-l-4 border-l-amber-500 hover:border-l-amber-400 transition-all duration-300">
@@ -641,8 +648,8 @@ export default function Dashboard() {
                             <td className="px-4 py-3 whitespace-nowrap font-semibold text-slate-600 dark:text-slate-350">{dueDateStr}</td>
                             <td className="px-4 py-3 whitespace-nowrap">
                               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${needsReminder
-                                  ? 'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                                  : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                                ? 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                                : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
                                 }`}>
                                 {needsReminder ? 'Overdue' : 'Up to date'}
                               </span>
@@ -694,147 +701,103 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
 
-            {/* My Assigned Tricycles Section */}
-            <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm">
-              <h3 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-4">
-                <Bike className="w-5 h-5 text-indigo-500" />
-                <span>My Assigned Tricycles ({clientMotorcycles.length})</span>
-              </h3>
+        {/* Notifications Feed & Report Generator (Span 1) */}
+        <div className="space-y-6">
+
+          {/* Notification center */}
+          <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm flex flex-col max-h-[450px]">
+            <h3 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-4 shrink-0">
+              <BellRing className="w-5 h-5 text-violet-500" />
+              <span>Notification Center</span>
+            </h3>
+
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
               {loading ? (
-                <p className="text-sm text-slate-550">Loading tricycles...</p>
-              ) : clientMotorcycles.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-4">No tricycles assigned to your profile yet.</p>
+                <p className="text-sm text-slate-500">Loading notifications...</p>
+              ) : notifications.length === 0 ? (
+                <p className="text-xs text-slate-400 text-center py-6">No new notifications or alerts.</p>
               ) : (
-                <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800/80">
-                  <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-xs">
-                    <thead className="bg-slate-100 dark:bg-slate-955">
-                      <tr>
-                        <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase">File No</th>
-                        <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase">Vehicle Details</th>
-                        <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase">Chassis No</th>
-                        <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase">Purchase Date</th>
-                        <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase">Asset Value</th>
-                        <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase">Utility Charges</th>
-                        <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase">Daily Return</th>
-                        <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase">Contract Term</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900/20">
-                      {clientMotorcycles.map((mc) => (
-                        <tr key={mc.id} className="hover:bg-slate-50 dark:hover:bg-slate-850/30">
-                          <td className="px-4 py-3 whitespace-nowrap font-medium text-slate-800 dark:text-white">{mc.file_no || 'N/A'}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">{mc.vehicle_type_chassis || 'N/A'}</td>
-                          <td className="px-4 py-3 whitespace-nowrap font-mono">{mc.chassis_no || 'N/A'}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-slate-600 dark:text-slate-350">{mc.date_of_purchase || 'N/A'}</td>
-                          <td className="px-4 py-3 whitespace-nowrap font-semibold text-slate-800 dark:text-white">₦{parseFloat(mc.total_disbursed_amount || 0).toLocaleString()}</td>
-                          <td className="px-4 py-3 whitespace-nowrap font-semibold text-cyan-600 dark:text-cyan-400">₦{parseFloat(mc.utility_charges || 0).toLocaleString()}</td>
-                          <td className="px-4 py-3 whitespace-nowrap font-semibold text-rose-600 dark:text-rose-455">₦{parseFloat(mc.daily_return || 0).toLocaleString()}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-slate-600 dark:text-slate-350">{mc.duration_of_completion || 'N/A'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                notifications.map((item) => (
+                  <div key={item.id} className="border border-slate-150 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/30 rounded-xl p-3 space-y-1.5 text-xs">
+                    <div className="flex justify-between items-center gap-2">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold border uppercase tracking-wider ${item.badgeColor}`}>
+                        {item.status}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium">{item.date}</span>
+                    </div>
+                    <h4 className="font-bold text-slate-800 dark:text-white">{item.title}</h4>
+                    <p className="text-slate-500 dark:text-slate-455 text-[11px] leading-relaxed">{item.details}</p>
+                  </div>
+                ))
               )}
             </div>
           </div>
 
-          {/* Notifications Feed & Report Generator (Span 1) */}
-          <div className="space-y-6">
+          {/* Financial Report Builder */}
+          <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm">
+            <h3 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-3">
+              <Printer className="w-5 h-5 text-violet-500" />
+              <span>Returns Report Builder</span>
+            </h3>
+            <p className="text-slate-500 text-[11px] mb-4">Generate and print statement of returns from your fleet.</p>
 
-            {/* Notification center */}
-            <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm flex flex-col max-h-[450px]">
-              <h3 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-4 shrink-0">
-                <BellRing className="w-5 h-5 text-violet-500" />
-                <span>Notification Center</span>
-              </h3>
-
-              <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
-                {loading ? (
-                  <p className="text-sm text-slate-500">Loading notifications...</p>
-                ) : notifications.length === 0 ? (
-                  <p className="text-xs text-slate-400 text-center py-6">No new notifications or alerts.</p>
-                ) : (
-                  notifications.map((item) => (
-                    <div key={item.id} className="border border-slate-150 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/30 rounded-xl p-3 space-y-1.5 text-xs">
-                      <div className="flex justify-between items-center gap-2">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold border uppercase tracking-wider ${item.badgeColor}`}>
-                          {item.status}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-medium">{item.date}</span>
-                      </div>
-                      <h4 className="font-bold text-slate-800 dark:text-white">{item.title}</h4>
-                      <p className="text-slate-500 dark:text-slate-455 text-[11px] leading-relaxed">{item.details}</p>
-                    </div>
-                  ))
-                )}
+            <form onSubmit={handleGenerateClientReport} className="space-y-4 text-xs">
+              <div className="flex flex-col gap-1.5">
+                <label className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Start Date</label>
+                <input
+                  type="date"
+                  value={reportStartDate}
+                  onChange={(e) => setReportStartDate(e.target.value)}
+                  required
+                  className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+                />
               </div>
-            </div>
 
-            {/* Financial Report Builder */}
-            <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm">
-              <h3 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-3">
-                <Printer className="w-5 h-5 text-violet-500" />
-                <span>Returns Report Builder</span>
-              </h3>
-              <p className="text-slate-500 text-[11px] mb-4">Generate and print statement of returns from your fleet.</p>
+              <div className="flex flex-col gap-1.5">
+                <label className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">End Date</label>
+                <input
+                  type="date"
+                  value={reportEndDate}
+                  onChange={(e) => setReportEndDate(e.target.value)}
+                  required
+                  className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+                />
+              </div>
 
-              <form onSubmit={handleGenerateClientReport} className="space-y-4 text-xs">
-                <div className="flex flex-col gap-1.5">
-                  <label className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Start Date</label>
-                  <input
-                    type="date"
-                    value={reportStartDate}
-                    onChange={(e) => setReportStartDate(e.target.value)}
-                    required
-                    className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50"
-                  />
+              <button
+                type="submit"
+                disabled={generatingReport}
+                className="w-full bg-violet-605 hover:bg-violet-500 text-white font-semibold py-2 rounded-xl text-center shadow-lg transition-all"
+              >
+                {generatingReport ? 'Generating...' : 'Build Report'}
+              </button>
+            </form>
+
+            {generatedReport && (
+              <div className="mt-4 pt-4 border-t border-slate-150 dark:border-slate-800 space-y-3 text-xs">
+                <div className="flex justify-between font-bold text-slate-800 dark:text-white">
+                  <span>Returns Total:</span>
+                  <span className="text-emerald-600">₦{generatedReport.summary.totalReturns.toLocaleString()}</span>
                 </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">End Date</label>
-                  <input
-                    type="date"
-                    value={reportEndDate}
-                    onChange={(e) => setReportEndDate(e.target.value)}
-                    required
-                    className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50"
-                  />
+                <div className="text-[10px] text-slate-400">
+                  Found {generatedReport.detailedReturns.length} returns logs.
                 </div>
-
                 <button
-                  type="submit"
-                  disabled={generatingReport}
-                  className="w-full bg-violet-605 hover:bg-violet-500 text-white font-semibold py-2 rounded-xl text-center shadow-lg transition-all"
+                  onClick={handlePrintClientReport}
+                  className="w-full border border-violet-500/40 hover:bg-violet-600/10 text-violet-600 dark:text-violet-405 font-bold py-2 rounded-xl text-center transition-all flex items-center justify-center gap-1.5"
                 >
-                  {generatingReport ? 'Generating...' : 'Build Report'}
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print Statement</span>
                 </button>
-              </form>
-
-              {generatedReport && (
-                <div className="mt-4 pt-4 border-t border-slate-150 dark:border-slate-800 space-y-3 text-xs">
-                  <div className="flex justify-between font-bold text-slate-800 dark:text-white">
-                    <span>Returns Total:</span>
-                    <span className="text-emerald-600">₦{generatedReport.summary.totalReturns.toLocaleString()}</span>
-                  </div>
-                  <div className="text-[10px] text-slate-400">
-                    Found {generatedReport.detailedReturns.length} returns logs.
-                  </div>
-                  <button
-                    onClick={handlePrintClientReport}
-                    className="w-full border border-violet-500/40 hover:bg-violet-600/10 text-violet-600 dark:text-violet-405 font-bold py-2 rounded-xl text-center transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <Printer className="w-3.5 h-3.5" />
-                    <span>Print Statement</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
+              </div>
+            )}
           </div>
 
         </div>
+
       </div>
     );
   }
@@ -1391,10 +1354,10 @@ export default function Dashboard() {
                         <td className="px-6 py-4 text-slate-650 dark:text-slate-350 text-xs">{action.details || 'N/A'}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${action.status === 'Resolved'
-                              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-                              : action.status === 'Action Taken'
-                                ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                                : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                            : action.status === 'Action Taken'
+                              ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                              : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
                             }`}>
                             {action.status}
                           </span>
@@ -1640,10 +1603,10 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${item.status === 'Resolved'
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                        : item.status === 'Pending'
-                          ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                          : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                      : item.status === 'Pending'
+                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                        : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
                       }`}>
                       {item.status}
                     </span>

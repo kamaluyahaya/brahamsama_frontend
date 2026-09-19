@@ -92,8 +92,13 @@ export default function RootLayout({
 
     if (!authStatus && pathname !== '/login' && pathname !== '/client-login' && pathname !== '/welcome' && pathname !== '/history' && pathname !== '/ceo-achievements' && !pathname.startsWith('/blog')) {
       router.push('/welcome');
-    } else if (authStatus && (parsedUser?.role === 'Client' || parsedUser?.role === 'Manager')) {
-      const restrictedRoutes = ['/clients', '/md-leaders', '/staff', '/compliance', '/accounts', '/raiders', '/branches'];
+    } else if (authStatus && parsedUser?.role === 'Manager') {
+      const restrictedRoutes = ['/clients', '/md-leaders', '/staff', '/compliance', '/accounts', '/raiders', '/branches', '/my-vehicles', '/assets'];
+      if (restrictedRoutes.some(route => pathname.startsWith(route))) {
+        router.push('/');
+      }
+    } else if (authStatus && parsedUser?.role === 'Client') {
+      const restrictedRoutes = ['/clients', '/md-leaders', '/staff', '/compliance', '/accounts', '/raiders', '/branches', '/my-riders'];
       if (restrictedRoutes.some(route => pathname.startsWith(route))) {
         router.push('/');
       }
@@ -173,14 +178,36 @@ export default function RootLayout({
     subItems?: SubItem[];
   }
 
-  const isRestrictedPortal = currentUser?.role === 'Client' || currentUser?.role === 'Manager';
+  const isClient = currentUser?.role === 'Client';
+  const isManager = currentUser?.role === 'Manager';
   const isAccountant = currentUser?.role === 'Accountant';
 
-  const navItems: NavItem[] = isRestrictedPortal ? [
+  const navItems: NavItem[] = isManager ? [
     {
       name: 'Dashboard',
       path: '/',
       icon: <LayoutDashboard className="w-5 h-5" />
+    },
+    {
+      name: 'My Squad Riders',
+      path: '/my-riders',
+      icon: <Users className="w-5 h-5" />
+    },
+    {
+      name: 'Profile & Settings',
+      path: '/profile',
+      icon: <User className="w-5 h-5" />
+    }
+  ] : isClient ? [
+    {
+      name: 'Dashboard',
+      path: '/',
+      icon: <LayoutDashboard className="w-5 h-5" />
+    },
+    {
+      name: 'My Vehicles',
+      path: '/my-vehicles',
+      icon: <Bike className="w-5 h-5" />
     },
     {
       name: 'Assets & Financial',
@@ -224,6 +251,8 @@ export default function RootLayout({
       path: '/clients',
       icon: <Users className="w-5 h-5" />,
       subItems: [
+        { name: 'All Clients', path: '/clients' },
+        { name: 'Vehicles Breakdown', path: '/my-vehicles' },
         { name: 'Register New Client', path: '/clients?action=add' }
       ]
     },

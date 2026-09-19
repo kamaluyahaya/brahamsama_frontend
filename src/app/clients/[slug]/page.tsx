@@ -108,6 +108,76 @@ export default function ClientDetailPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeletingClient, setIsDeletingClient] = useState(false);
 
+  // Edit Client Modal State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState<Partial<Client>>({});
+  const [editPassportFile, setEditPassportFile] = useState<File | null>(null);
+  const [editPassportPreview, setEditPassportPreview] = useState<string | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [branches, setBranches] = useState<{ id: number; name: string }[]>([]);
+
+  const handleOpenEditClient = () => {
+    if (!client) return;
+    setEditForm({
+      name: client.name || '',
+      phone: client.phone || '',
+      email_address: client.email_address || '',
+      residential_address: client.residential_address || '',
+      office: client.office || '',
+      branch_id: client.branch_id ?? null,
+      id_details: client.id_details || '',
+      bank_name: client.bank_name || '',
+      account_name: client.account_name || '',
+      account_number: client.account_number || '',
+      file_no: client.file_no || '',
+      date_of_purchase: client.date_of_purchase || '',
+      date_of_first_disbursement: client.date_of_first_disbursement || '',
+      final_disbursement: client.final_disbursement || '',
+      vehicle_type_chassis: client.vehicle_type_chassis || '',
+      no_of_motorcycles: client.no_of_motorcycles ?? null,
+      chassis_no: client.chassis_no || '',
+      total_disbursed_amount: client.total_disbursed_amount ?? null,
+      utility_charges: client.utility_charges ?? null,
+      duration_of_completion: client.duration_of_completion || '',
+    });
+    setEditPassportFile(null);
+    setEditPassportPreview(null);
+    if (branches.length === 0) {
+      fetch('/api/branches').then(r => r.json()).then(data => setBranches(data)).catch(() => {});
+    }
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!client) return;
+    setIsSavingEdit(true);
+    try {
+      const fd = new FormData();
+      Object.entries(editForm).forEach(([k, v]) => {
+        if (v !== null && v !== undefined) fd.append(k, String(v));
+      });
+      if (editPassportFile) fd.append('passport', editPassportFile);
+
+      const res = await fetch(`/api/clients/${client.id}`, {
+        method: 'PUT',
+        body: fd,
+      });
+      if (res.ok) {
+        setShowEditModal(false);
+        fetchClientDetails();
+      } else {
+        const data = await res.json();
+        alert('Error: ' + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update client.');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
   useEffect(() => {
     if (slugParam) {
       fetchClientDetails();
@@ -410,6 +480,14 @@ export default function ClientDetailPage() {
             <span>Assign Bicycle</span>
           </button>
           <button
+            onClick={handleOpenEditClient}
+            className="bg-violet-600 hover:bg-violet-500 text-white font-semibold text-xs px-3 sm:px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
+            title="Edit Client"
+          >
+            <Edit2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Edit Client</span>
+          </button>
+          <button
             onClick={handleExportCSV}
             className="bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs px-3 sm:px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
             title="Export CSV"
@@ -427,10 +505,11 @@ export default function ClientDetailPage() {
           </button>
           <button
             onClick={() => setShowDeleteModal(true)}
-            className="bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
+            className="bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs px-3 sm:px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
+            title="Delete Client"
           >
             <Trash2 className="w-4 h-4" />
-            <span>Delete Client</span>
+            <span className="hidden sm:inline">Delete Client</span>
           </button>
         </div>
       </div>
@@ -798,6 +877,195 @@ export default function ClientDetailPage() {
                     className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-2 rounded-xl transition-all shadow-md active:scale-95"
                   >
                     {isSavingMc ? 'Saving...' : editingMc ? 'Update Bicycle' : 'Save & Assign Bicycle'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      {/* Edit Client Modal */}
+      {showEditModal && client && (
+        <ModalPortal>
+          <div
+            className="fixed inset-0 bg-slate-900/60 dark:bg-slate-955/80 backdrop-blur-sm z-[99999] flex items-start justify-center p-0 md:p-4 overflow-y-auto"
+            onClick={() => !isSavingEdit && setShowEditModal(false)}
+          >
+            <div
+              className="bg-white dark:bg-slate-900 border-0 md:border border-slate-200 dark:border-slate-800 w-full h-full md:h-auto max-w-none md:max-w-3xl md:max-h-[92vh] shadow-2xl relative overflow-hidden flex flex-col md:rounded-2xl my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 flex items-center justify-center text-violet-600">
+                    <Edit2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Edit Client Profile</h3>
+                    <p className="text-[10px] text-slate-400">{client.name}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSaveEdit} className="flex-1 overflow-y-auto p-6 space-y-6">
+
+                {/* Passport Photo */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-2">Passport Photo</label>
+                  <div className="flex items-center gap-4">
+                    {editPassportPreview ? (
+                      <img src={editPassportPreview} className="w-20 h-20 rounded-xl object-cover border-2 border-violet-400" />
+                    ) : client.passport_url ? (
+                      <img src={client.passport_url} className="w-20 h-20 rounded-xl object-cover border-2 border-slate-300 dark:border-slate-700" />
+                    ) : (
+                      <div className="w-20 h-20 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                        <User className="w-8 h-8 text-slate-400" />
+                      </div>
+                    )}
+                    <label className="cursor-pointer bg-slate-100 dark:bg-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950/40 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-600 dark:text-slate-300 font-semibold transition-colors">
+                      Change Photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setEditPassportFile(file);
+                            const reader = new FileReader();
+                            reader.onloadend = () => setEditPassportPreview(reader.result as string);
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Personal Info */}
+                <div>
+                  <h4 className="text-[11px] font-bold text-violet-600 uppercase tracking-wider mb-3 flex items-center gap-1.5"><User className="w-3.5 h-3.5" /> Personal Information</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      { label: 'Full Name', key: 'name', required: true },
+                      { label: 'Phone Number', key: 'phone' },
+                      { label: 'Email Address', key: 'email_address', type: 'email' },
+                      { label: 'Government ID Details', key: 'id_details' },
+                    ].map(({ label, key, required, type }) => (
+                      <div key={key}>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">{label}{required && ' *'}</label>
+                        <input
+                          type={type || 'text'}
+                          required={required}
+                          value={(editForm as any)[key] || ''}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, [key]: e.target.value }))}
+                          className="w-full bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
+                        />
+                      </div>
+                    ))}
+                    <div className="sm:col-span-2">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Residential Address</label>
+                      <input
+                        type="text"
+                        value={editForm.residential_address || ''}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, residential_address: e.target.value }))}
+                        className="w-full bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Branch / Office</label>
+                      <select
+                        value={editForm.branch_id || ''}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, branch_id: e.target.value ? Number(e.target.value) : null }))}
+                        className="w-full bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
+                      >
+                        <option value="">-- Select Branch --</option>
+                        {branches.map(b => (
+                          <option key={b.id} value={b.id}>{b.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bank & Financial */}
+                <div>
+                  <h4 className="text-[11px] font-bold text-violet-600 uppercase tracking-wider mb-3 flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5" /> Bank & Financial Info</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {[
+                      { label: 'Bank Name', key: 'bank_name' },
+                      { label: 'Account Name', key: 'account_name' },
+                      { label: 'Account Number', key: 'account_number' },
+                    ].map(({ label, key }) => (
+                      <div key={key}>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">{label}</label>
+                        <input
+                          type="text"
+                          value={(editForm as any)[key] || ''}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, [key]: e.target.value }))}
+                          className="w-full bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Contract Details */}
+                <div>
+                  <h4 className="text-[11px] font-bold text-violet-600 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Bike className="w-3.5 h-3.5" /> Contract & Vehicle Details</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      { label: 'File No', key: 'file_no' },
+                      { label: 'Vehicle Type / Chassis', key: 'vehicle_type_chassis' },
+                      { label: 'Chassis No', key: 'chassis_no' },
+                      { label: 'No. of Motorcycles', key: 'no_of_motorcycles', type: 'number' },
+                      { label: 'Total Disbursed Amount (₦)', key: 'total_disbursed_amount', type: 'number' },
+                      { label: 'Utility Charges (₦)', key: 'utility_charges', type: 'number' },
+                      { label: 'Contract Duration', key: 'duration_of_completion' },
+                      { label: 'Date of Purchase', key: 'date_of_purchase', type: 'date' },
+                      { label: 'First Disbursement Date', key: 'date_of_first_disbursement', type: 'date' },
+                      { label: 'Final Disbursement Date', key: 'final_disbursement', type: 'date' },
+                    ].map(({ label, key, type }) => (
+                      <div key={key}>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">{label}</label>
+                        <input
+                          type={type || 'text'}
+                          step={type === 'number' ? 'any' : undefined}
+                          value={(editForm as any)[key] ?? ''}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, [key]: type === 'number' ? (e.target.value === '' ? null : Number(e.target.value)) : e.target.value }))}
+                          className="w-full bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800 sticky bottom-0 bg-white dark:bg-slate-900 pb-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    disabled={isSavingEdit}
+                    className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold text-xs transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingEdit}
+                    className="bg-violet-600 hover:bg-violet-500 text-white font-semibold text-xs px-6 py-2.5 rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1.5"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    {isSavingEdit ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
               </form>
