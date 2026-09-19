@@ -43,6 +43,7 @@ interface PaymentItem {
   amount: number;
   receipt_no: string;
   raider_id?: number;
+  comments?: string;
 }
 
 export default function MyRidersPage() {
