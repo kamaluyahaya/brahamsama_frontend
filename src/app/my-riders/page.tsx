@@ -35,6 +35,9 @@ interface RaiderItem {
   vehicle_file_no?: string;
   vehicle_daily_return?: number | string;
   daily_return?: number | string;
+  total_collected?: number | string;
+  collected_today?: number | string;
+  payments_count?: number;
 }
 
 interface PaymentItem {
@@ -42,7 +45,8 @@ interface PaymentItem {
   date: string;
   amount: number;
   receipt_no: string;
-  raider_id?: number;
+  raider_id?: number | null;
+  md_leader_id?: number | null;
   comments?: string;
 }
 
@@ -51,6 +55,7 @@ export default function MyRidersPage() {
   const [raiders, setRaiders] = useState<RaiderItem[]>([]);
   const [payments, setPayments] = useState<PaymentItem[]>([]);
   const [managerName, setManagerName] = useState('');
+  const [serverTotals, setServerTotals] = useState<{ total_collected: number; collected_today: number; riders_count: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -83,8 +88,8 @@ export default function MyRidersPage() {
   });
 
   const getRiderMetrics = (raiderId: number, dateOfPurchase?: string) => {
-    const rPayments = payments.filter(p => p.raider_id === raiderId);
-    const paymentDates = new Set(rPayments.map(p => p.date));
+    const rPayments = payments.filter(p => String(p.raider_id) === String(raiderId));
+    const paymentDates = new Set(rPayments.map(p => String(p.date || '').slice(0, 10)));
     const today = new Date();
 
     let startDate = dateOfPurchase ? new Date(dateOfPurchase) : new Date(today.getFullYear(), today.getMonth(), 1);
@@ -127,6 +132,7 @@ export default function MyRidersPage() {
         const data = await res.json();
         setRaiders(data.raiders || []);
         setPayments(data.payments || []);
+        setServerTotals(data.totals || null);
         if (data.name) setManagerName(data.name);
       }
     } catch (err) {
@@ -204,7 +210,7 @@ export default function MyRidersPage() {
 
     // Check for duplicate return on the exact same date (already completed)
     const existingPayment = payments.find(
-      p => p.raider_id === selectedRaiderForReturn.id && p.date === returnForm.date
+      p => String(p.raider_id) === String(selectedRaiderForReturn.id) && String(p.date || '').slice(0, 10) === returnForm.date
     );
     if (existingPayment) {
       setNoticeModal({
@@ -285,11 +291,16 @@ export default function MyRidersPage() {
   };
 
   const totalExpectedDaily = raiders.reduce((sum, r) => sum + getRiderDailyRate(r), 0);
-  const totalCollectedAllTime = payments.reduce((sum, p) => sum + (parseFloat(String(p.amount || 0)) || 0), 0);
   const todayStr = new Date().toISOString().split('T')[0];
-  const todayCollected = payments
-    .filter(p => p.date === todayStr)
-    .reduce((sum, p) => sum + (parseFloat(String(p.amount || 0)) || 0), 0);
+  // Prefer the server-computed figures; fall back to summing payments locally.
+  const totalCollectedAllTime = serverTotals
+    ? serverTotals.total_collected
+    : payments.reduce((sum, p) => sum + (parseFloat(String(p.amount || 0)) || 0), 0);
+  const todayCollected = serverTotals
+    ? serverTotals.collected_today
+    : payments
+      .filter(p => String(p.date || '').slice(0, 10) === todayStr)
+      .reduce((sum, p) => sum + (parseFloat(String(p.amount || 0)) || 0), 0);
 
   const calendarDays = (() => {
     if (!currentCalendarMonth) return [];
@@ -365,7 +376,7 @@ export default function MyRidersPage() {
       </div>
 
       {/* KPI Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-2 relative overflow-hidden">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-bold uppercase tracking-wider">Total Squad Riders</span>
@@ -398,6 +409,17 @@ export default function MyRidersPage() {
           </div>
           <p className="text-[11px] text-slate-400">Total collected today ({todayStr})</p>
         </div>
+
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-2 relative overflow-hidden">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider">Total Amount Collected</span>
+            <Receipt className="w-5 h-5 text-violet-500" />
+          </div>
+          <div className="text-2xl font-black text-violet-600 dark:text-violet-400">
+            ₦{totalCollectedAllTime.toLocaleString()}
+          </div>
+          <p className="text-[11px] text-slate-400">All collections logged across your squad</p>
+        </div>
       </div>
 
       {/* Riders Grid List */}
@@ -420,10 +442,12 @@ export default function MyRidersPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredRaiders.map((r) => {
-              const riderPayments = payments.filter(p => p.raider_id === r.id);
-              const totalRiderCollected = riderPayments.reduce((sum, p) => sum + (parseFloat(String(p.amount || 0)) || 0), 0);
+              const riderPayments = payments.filter(p => String(p.raider_id) === String(r.id));
+              const totalRiderCollected = r.total_collected !== undefined
+                ? parseFloat(String(r.total_collected)) || 0
+                : riderPayments.reduce((sum, p) => sum + (parseFloat(String(p.amount || 0)) || 0), 0);
               const lastPayment = riderPayments.length > 0 ? riderPayments[0] : null;
-              const hasPaidToday = riderPayments.some(p => p.date === todayStr);
+              const hasPaidToday = riderPayments.some(p => String(p.date || '').slice(0, 10) === todayStr);
               const metrics = getRiderMetrics(r.id, (r as any).date_of_purchase || (r as any).date_of_appointment);
               const rawStart = (r as any).date_of_purchase || (r as any).date_of_appointment;
               let startDateStr = '';

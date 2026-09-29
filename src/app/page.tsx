@@ -233,11 +233,11 @@ export default function Dashboard() {
           setManagerCompliance(data.compliance || []);
 
           const totalRaiders = (data.raiders || []).length;
-          const totalReturns = (data.payments || []).reduce((sum: number, item: any) => sum + parseFloat(item.amount || 0), 0);
-
           const todayStr = new Date().toISOString().split('T')[0];
-          const todayReturns = (data.payments || [])
-            .filter((item: any) => item.date === todayStr)
+          const totalReturns = data.totals?.total_collected ?? (data.payments || [])
+            .reduce((sum: number, item: any) => sum + parseFloat(item.amount || 0), 0);
+          const todayReturns = data.totals?.collected_today ?? (data.payments || [])
+            .filter((item: any) => String(item.date || '').slice(0, 10) === todayStr)
             .reduce((sum: number, item: any) => sum + parseFloat(item.amount || 0), 0);
 
           const activeQueries = (data.compliance || []).filter((c: any) => c.status === 'Pending').length;
@@ -308,11 +308,11 @@ export default function Dashboard() {
           setManagerCompliance(data.compliance || []);
 
           const totalRaiders = (data.raiders || []).length;
-          const totalReturns = (data.payments || []).reduce((sum: number, item: any) => sum + parseFloat(item.amount || 0), 0);
-
           const todayStr = new Date().toISOString().split('T')[0];
-          const todayReturns = (data.payments || [])
-            .filter((item: any) => item.date === todayStr)
+          const totalReturns = data.totals?.total_collected ?? (data.payments || [])
+            .reduce((sum: number, item: any) => sum + parseFloat(item.amount || 0), 0);
+          const todayReturns = data.totals?.collected_today ?? (data.payments || [])
+            .filter((item: any) => String(item.date || '').slice(0, 10) === todayStr)
             .reduce((sum: number, item: any) => sum + parseFloat(item.amount || 0), 0);
 
           const activeQueries = (data.compliance || []).filter((c: any) => c.status === 'Pending').length;
@@ -559,7 +559,7 @@ export default function Dashboard() {
         </h2>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm border-l-4 border-l-violet-500 hover:border-l-violet-400 transition-all duration-300">
             <div className="flex justify-between items-start">
               <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Fleet Riders</div>
@@ -582,6 +582,17 @@ export default function Dashboard() {
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Cumulative returns logged from riders</p>
           </div>
 
+          <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm border-l-4 border-l-amber-500 hover:border-l-amber-400 transition-all duration-300">
+            <div className="flex justify-between items-start">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Disbursed</div>
+              <Coins className="w-4 h-4 text-amber-500" />
+            </div>
+            <div className="text-3xl font-extrabold tracking-tight text-amber-600 dark:text-amber-400 mt-2">
+              ₦{loading ? '...' : clientStats.totalAmountPurchase.toLocaleString()}
+            </div>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Total asset finance disbursed</p>
+          </div>
+
           <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm border-l-4 border-l-rose-500 hover:border-l-rose-400 transition-all duration-300">
             <div className="flex justify-between items-start">
               <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Overdue Alerts</div>
@@ -593,13 +604,13 @@ export default function Dashboard() {
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Riders pending weekly returns</p>
           </div>
 
-          <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm border-l-4 border-l-amber-500 hover:border-l-amber-400 transition-all duration-300">
+          <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm border-l-4 border-l-indigo-500 hover:border-l-indigo-400 transition-all duration-300">
             <div className="flex justify-between items-start">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Tricycles</div>
-              <Bike className="w-4 h-4 text-amber-500" />
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Vehicles</div>
+              <Bike className="w-4 h-4 text-indigo-500" />
             </div>
             <div className="text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white mt-2">{loading ? '...' : clientStats.totalTricycles}</div>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Total tricycles registered under your profile</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Total vehicles registered under profile</p>
           </div>
         </div>
 
@@ -977,9 +988,9 @@ export default function Dashboard() {
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900/20">
                     {managerReturns.map((item: any) => {
-                      const raiderObj = managerRaiders.find(r => r.id === item.raider_id) || {};
+                      const raiderObj = managerRaiders.find(r => String(r.id) === String(item.raider_id)) || {};
                       const totalPaid = managerReturns
-                        .filter((p: any) => p.raider_id === item.raider_id)
+                        .filter((p: any) => String(p.raider_id) === String(item.raider_id))
                         .reduce((sum: number, p: any) => sum + parseFloat(p.amount || 0), 0);
 
                       return (
@@ -1298,9 +1309,11 @@ export default function Dashboard() {
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900/20">
                   {managerRaiders.map((raider: any) => {
-                    const totalPaid = managerReturns
-                      .filter((p: any) => p.raider_id === raider.id)
-                      .reduce((sum: number, p: any) => sum + parseFloat(p.amount || 0), 0);
+                    const totalPaid = raider.total_collected !== undefined
+                      ? parseFloat(raider.total_collected) || 0
+                      : managerReturns
+                        .filter((p: any) => String(p.raider_id) === String(raider.id))
+                        .reduce((sum: number, p: any) => sum + parseFloat(p.amount || 0), 0);
                     return (
                       <tr key={raider.id} className="hover:bg-slate-100/40 dark:hover:bg-slate-800/20 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap font-bold text-cyan-600 dark:text-cyan-400">{raider.tempo_reg_no || 'N/A'}</td>

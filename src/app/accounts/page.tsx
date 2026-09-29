@@ -37,8 +37,11 @@ interface Expense {
   recorded_by: string;
   client_id?: number | null;
   staff_id?: number | null;
+  client_motorcycle_id?: number | null;
   client_name?: string | null;
   staff_name?: string | null;
+  vehicle_type_chassis?: string | null;
+  vehicle_chassis_no?: string | null;
 }
 
 interface ReturnRecord {
@@ -131,6 +134,12 @@ export default function AccountsPage() {
       { label: 'Outflow Date', value: item.date },
       { label: 'Disbursed Amount', value: `₦${parseFloat(item.amount || 0).toLocaleString()}` },
       { label: 'Beneficiary Client', value: item.client_name || 'None (General Office Expense)' },
+      ...(item.vehicle_type_chassis
+        ? [{
+            label: 'Vehicle',
+            value: `${item.vehicle_type_chassis}${item.vehicle_chassis_no ? ` (${item.vehicle_chassis_no})` : ''}`,
+          }]
+        : []),
       { label: 'Logged Officer (Staff)', value: item.staff_name || item.recorded_by || 'System' },
     ]);
     setReportPreviewTables([]);
@@ -339,7 +348,7 @@ export default function AccountsPage() {
         setDisbursementError('Amount is required.');
         return;
       }
-      const maxAmount = selectedVehicleObj ? parseFloat(selectedVehicleObj.total_disbursed_amount || 0) : 0;
+      const maxAmount = selectedVehicleObj ? parseFloat(selectedVehicleObj.balance_available ?? selectedVehicleObj.total_disbursed_amount ?? 0) : 0;
       if (parseFloat(expenseForm.amount) > maxAmount) {
         setDisbursementError(`Amount exceeds the vehicle's available disbursement of ₦${maxAmount.toLocaleString()}.`);
         return;
@@ -349,6 +358,7 @@ export default function AccountsPage() {
     }
 
     try {
+      const isSyntheticVehicle = String(expenseForm.selected_vehicle_id).startsWith('primary-');
       const payload = {
         date: expenseForm.date,
         amount: parseFloat(expenseForm.amount),
@@ -361,6 +371,10 @@ export default function AccountsPage() {
         recorded_by: currentUser ? currentUser.name : 'System',
         client_id: expenseForm.client_id || null,
         staff_id: currentUser && currentUser.role !== 'Client' && currentUser.role !== 'Manager' ? currentUser.id : null,
+        client_motorcycle_id:
+          expenseForm.category === 'Disbursement' && !isSyntheticVehicle && expenseForm.selected_vehicle_id
+            ? expenseForm.selected_vehicle_id
+            : null,
       };
 
       const res = await fetch('/api/accounts/expenses', {
@@ -383,9 +397,13 @@ export default function AccountsPage() {
         setClientVehicles([]);
         setDisbursementError('');
         fetchExpenses();
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setDisbursementError(errData.message || 'Failed to record expense.');
       }
     } catch (err) {
       console.error(err);
+      setDisbursementError('Failed to record expense.');
     }
   };
 
@@ -715,7 +733,9 @@ export default function AccountsPage() {
                   ) : (
                     <div className="space-y-2">
                       {clientVehicles.map((v: any) => {
-                        const available = parseFloat(v.total_disbursed_amount || 0);
+                        const facility = parseFloat(v.total_disbursed_amount || 0);
+                        const disbursed = parseFloat(v.disbursed_to_date || 0);
+                        const available = parseFloat(v.balance_available ?? facility) || 0;
                         const isSelected = String(expenseForm.selected_vehicle_id) === String(v.id);
                         return (
                           <label
@@ -750,6 +770,11 @@ export default function AccountsPage() {
                               <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
                                 Chassis: {v.chassis_no || '—'} &nbsp;|&nbsp; First Disbursed: {v.date_of_first_disbursement || '—'}
                               </div>
+                              {disbursed > 0 && (
+                                <div className="text-[10px] text-amber-700 dark:text-amber-400 mt-1 font-semibold">
+                                  Facility: ₦{facility.toLocaleString()} &minus; Disbursed: ₦{disbursed.toLocaleString()}
+                                </div>
+                              )}
                             </div>
                           </label>
                         );
@@ -766,21 +791,21 @@ export default function AccountsPage() {
                     <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Amount (₦) *</label>
                     {selectedVehicleObj && (
                       <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">
-                        Max: ₦{parseFloat(selectedVehicleObj.total_disbursed_amount || 0).toLocaleString()}
+                        Max: ₦{(parseFloat(selectedVehicleObj.balance_available ?? selectedVehicleObj.total_disbursed_amount ?? 0) || 0).toLocaleString()}
                       </span>
                     )}
                   </div>
                   <input
                     type="number"
-                    placeholder={selectedVehicleObj ? `Enter amount (max ₦${parseFloat(selectedVehicleObj.total_disbursed_amount || 0).toLocaleString()})` : 'Expense Amount'}
+                    placeholder={selectedVehicleObj ? `Enter amount (max ₦${(parseFloat(selectedVehicleObj.balance_available ?? selectedVehicleObj.total_disbursed_amount ?? 0) || 0).toLocaleString()})` : 'Expense Amount'}
                     value={expenseForm.amount}
                     min={0}
-                    max={selectedVehicleObj ? parseFloat(selectedVehicleObj.total_disbursed_amount || 0) : undefined}
+                    max={selectedVehicleObj ? parseFloat(selectedVehicleObj.balance_available ?? selectedVehicleObj.total_disbursed_amount ?? 0) : undefined}
                     onChange={(e) => {
                       const val = e.target.value;
                       setExpenseForm(prev => ({ ...prev, amount: val }));
                       if (selectedVehicleObj) {
-                        const max = parseFloat(selectedVehicleObj.total_disbursed_amount || 0);
+                        const max = parseFloat(selectedVehicleObj.balance_available ?? selectedVehicleObj.total_disbursed_amount ?? 0) || 0;
                         if (parseFloat(val) > max) {
                           setDisbursementError(`₦${parseFloat(val).toLocaleString()} exceeds the vehicle's available disbursement of ₦${max.toLocaleString()}.`);
                         } else {
@@ -844,6 +869,17 @@ export default function AccountsPage() {
                           {item.client_name && (
                             <div className="text-[10px] text-cyan-600 dark:text-cyan-400 font-bold uppercase mt-0.5">
                               Client Ref: {item.client_name}
+                            </div>
+                          )}
+                          {item.vehicle_type_chassis && (
+                            <div className="text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase mt-0.5">
+                              Vehicle: {item.vehicle_type_chassis}
+                              {item.vehicle_chassis_no ? ` (${item.vehicle_chassis_no})` : ''}
+                            </div>
+                          )}
+                          {item.category === 'Disbursement' && item.client_id && !item.vehicle_type_chassis && (
+                            <div className="text-[10px] text-rose-500 dark:text-rose-400 font-semibold uppercase mt-0.5">
+                              Not linked to a vehicle
                             </div>
                           )}
                         </td>

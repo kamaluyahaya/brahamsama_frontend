@@ -16,7 +16,8 @@ import {
   Search,
   Receipt,
   Layers,
-  ShieldCheck
+  ShieldCheck,
+  Banknote
 } from 'lucide-react';
 
 interface Motorcycle {
@@ -32,6 +33,8 @@ interface Motorcycle {
   total_disbursed_amount: number | string;
   utility_charges: number | string;
   daily_return: number | string;
+  disbursed_to_date?: number | string;
+  balance_available?: number | string;
   created_at?: string;
 }
 
@@ -135,6 +138,8 @@ export default function MyVehiclesPage() {
   const totalUtilityCharges = motorcycles.reduce((sum, mc) => sum + toNum(mc.utility_charges), 0) || toNum(clientProfile?.utility_charges);
   const totalDailyReturnRate = motorcycles.reduce((sum, mc) => sum + toNum(mc.daily_return), 0);
   const totalAmountCollected = returns.reduce((sum, r) => sum + toNum(r.amount), 0);
+  const totalAmountReceived = motorcycles.reduce((sum, mc) => sum + toNum(mc.disbursed_to_date), 0);
+  const totalOutstanding = Math.max(0, totalAmountPurchase - totalAmountReceived - totalAmountCollected);
   const totalVehiclesCount = motorcycles.length > 0
     ? motorcycles.length
     : (parseInt(clientProfile?.no_of_motorcycles || '0') || (clientProfile?.chassis_no || clientProfile?.vehicle_type_chassis ? 1 : 0));
@@ -206,13 +211,13 @@ export default function MyVehiclesPage() {
 
         <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm border-l-4 border-l-violet-500">
           <div className="flex justify-between items-start">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Amount Purchase</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Disbursed</div>
             <TrendingUp className="w-4 h-4 text-violet-500" />
           </div>
           <div className="text-xl font-extrabold text-slate-800 dark:text-white mt-2">
             {loading ? '...' : formatNaira(totalAmountPurchase)}
           </div>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Disbursed asset value</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Amount disbursed to client</p>
         </div>
 
         <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm border-l-4 border-l-cyan-500">
@@ -246,6 +251,28 @@ export default function MyVehiclesPage() {
             {loading ? '...' : formatNaira(totalAmountCollected)}
           </div>
           <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Total returns logged</p>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm border-l-4 border-l-violet-500">
+          <div className="flex justify-between items-start">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Amount Received</div>
+            <Banknote className="w-4 h-4 text-violet-500" />
+          </div>
+          <div className="text-xl font-extrabold text-violet-600 dark:text-violet-400 mt-2">
+            {loading ? '...' : formatNaira(totalAmountReceived)}
+          </div>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Total disbursed to you</p>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm border-l-4 border-l-amber-500">
+          <div className="flex justify-between items-start">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Outstanding Balance</div>
+            <Receipt className="w-4 h-4 text-amber-500" />
+          </div>
+          <div className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-2">
+            {loading ? '...' : formatNaira(totalOutstanding)}
+          </div>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Still owed on your vehicles</p>
         </div>
       </div>
 
@@ -316,9 +343,11 @@ export default function MyVehiclesPage() {
 
               const mcCollected = effectiveReturns.reduce((sum, r) => sum + toNum(r.amount), 0);
               const mcPurchase = toNum(mc.total_disbursed_amount);
+              const mcReceived = toNum(mc.disbursed_to_date);
+              const mcOutstanding = Math.max(0, mcPurchase - mcReceived - mcCollected);
               const mcUtility = toNum(mc.utility_charges);
               const mcDailyReturn = toNum(mc.daily_return);
-              const progressPct = mcPurchase > 0 ? Math.min(100, Math.round((mcCollected / mcPurchase) * 100)) : 0;
+              const progressPct = mcPurchase > 0 ? Math.min(100, Math.round(((mcCollected + mcReceived) / mcPurchase) * 100)) : 0;
 
               return (
                 <div
@@ -360,13 +389,18 @@ export default function MyVehiclesPage() {
                     {/* Quick Metrics Bar */}
                     <div className="flex items-center gap-6 shrink-0 justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-200 dark:border-slate-800">
                       <div className="text-right">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Amount Purchase</div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Disbursed</div>
                         <div className="font-extrabold text-sm text-slate-900 dark:text-white">{formatNaira(mcPurchase)}</div>
                       </div>
 
                       <div className="text-right">
                         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Amount Collected</div>
                         <div className="font-extrabold text-sm text-emerald-600 dark:text-emerald-400">{formatNaira(mcCollected)}</div>
+                      </div>
+
+                      <div className="text-right">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Outstanding</div>
+                        <div className="font-extrabold text-sm text-amber-600 dark:text-amber-400">{formatNaira(mcOutstanding)}</div>
                       </div>
 
                       <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-violet-500' : ''}`} />
@@ -377,14 +411,23 @@ export default function MyVehiclesPage() {
                   {isExpanded && (
                     <div className="border-t border-slate-200 dark:border-slate-800 p-6 bg-white dark:bg-slate-900/60 space-y-6">
                       {/* Financial Breakdown Cards Grid */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div className="bg-violet-600/5 border border-violet-500/15 rounded-xl p-4">
                           <div className="text-[10px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400 flex items-center gap-1">
                             <FileText className="w-3.5 h-3.5" />
-                            <span>Amount Purchase (Disbursed)</span>
+                            <span>Total Disbursed to Client</span>
                           </div>
                           <div className="text-xl font-extrabold text-slate-900 dark:text-white mt-1.5">{formatNaira(mcPurchase)}</div>
-                          <p className="text-[10px] text-slate-400 mt-1">Vehicle purchase value</p>
+                          <p className="text-[10px] text-slate-400 mt-1">Vehicle purchase / facility amount</p>
+                        </div>
+
+                        <div className="bg-amber-600/5 border border-amber-500/15 rounded-xl p-4">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                            <Banknote className="w-3.5 h-3.5" />
+                            <span>Amount Received</span>
+                          </div>
+                          <div className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-1.5">{formatNaira(mcReceived)}</div>
+                          <p className="text-[10px] text-slate-400 mt-1">Disbursed to you so far</p>
                         </div>
 
                         <div className="bg-cyan-600/5 border border-cyan-500/15 rounded-xl p-4">
@@ -412,6 +455,15 @@ export default function MyVehiclesPage() {
                           </div>
                           <div className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5">{formatNaira(mcCollected)}</div>
                           <p className="text-[10px] text-slate-400 mt-1">Returns received from rider</p>
+                        </div>
+
+                        <div className="bg-slate-600/5 border border-slate-500/15 rounded-xl p-4">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                            <Wallet className="w-3.5 h-3.5" />
+                            <span>Outstanding Balance</span>
+                          </div>
+                          <div className="text-xl font-extrabold text-slate-900 dark:text-white mt-1.5">{formatNaira(mcOutstanding)}</div>
+                          <p className="text-[10px] text-slate-400 mt-1">Facility less received &amp; collected</p>
                         </div>
                       </div>
 
