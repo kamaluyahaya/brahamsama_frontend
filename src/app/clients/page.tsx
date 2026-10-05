@@ -797,7 +797,7 @@ export default function ClientsPage() {
       )}
 
       {/* Printable PDF Layout with Brahman Sama Branding */}
-      <div className="hidden print:block fixed inset-0 bg-white text-slate-900 p-8 z-[99999] overflow-visible">
+      <div className="hidden print:block w-full bg-white text-slate-900 p-2">
         {/* Brahman Sama Official Header */}
         <div className="border-b-2 border-slate-800 pb-4 mb-6 flex justify-between items-center">
           <div className="flex items-center gap-4">

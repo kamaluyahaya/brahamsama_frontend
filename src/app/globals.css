@@ -662,3 +662,64 @@ html.dark {
 .focus\:border-violet-500:focus {
   border-color: #1d4ed8 !important;
 }
+
+/* Print CSS Styles for Multi-Page Reports */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Hide app navigation sidebar, headers, background panels, modals when printing */
+  .sidebar,
+  .nav-menu,
+  header,
+  footer,
+  .main-content > div:not(.print\:block),
+  .modal-overlay,
+  button,
+  a {
+    display: none !important;
+  }
+
+  /* Ensure printable area takes full viewport with visible overflow across pages */
+  .print\:block {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    inset: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+  }
+
+  /* Table multi-page break rules */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+  }
+
+  thead {
+    display: table-header-group !important; /* Repeats table header on top of each page */
+  }
+
+  tr {
+    page-break-inside: avoid !important; /* Keeps individual row intact across page break */
+    page-break-after: auto !important;
+  }
+
+  td, th {
+    word-break: break-word !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 15mm 12mm 15mm 12mm;
+  }
+}
+
