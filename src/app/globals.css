@@ -665,16 +665,18 @@ html.dark {
 
 /* Print CSS Styles for Multi-Page Reports */
 @media print {
-  /* Reset html & body so browser pagination works cleanly */
+  /* Reset html & body so browser pagination works cleanly without top offset */
   html, body {
     height: auto !important;
     min-height: 0 !important;
     overflow: visible !important;
     background: #ffffff !important;
     color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  /* Completely hide layout elements (sidebar, app header, backdrop) */
+  /* Completely hide all screen elements when printing */
   aside,
   header,
   nav,
@@ -684,13 +686,13 @@ html.dark {
   .print\:hidden {
     display: none !important;
     visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  /* Reset main flex layout wrappers to default block flow */
-  .flex,
-  .flex-1,
-  .h-screen,
-  .overflow-hidden,
+  /* Reset layout containers */
   main {
     display: block !important;
     height: auto !important;
@@ -701,14 +703,18 @@ html.dark {
     border: none !important;
   }
 
-  /* Ensure printable area takes full width and page height */
+  /* Force printable block to top of document */
   .print\:block {
     display: block !important;
-    position: static !important;
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
     width: 100% !important;
     height: auto !important;
     overflow: visible !important;
     background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   /* Clean up print table structure */
@@ -719,11 +725,11 @@ html.dark {
   }
 
   thead {
-    display: table-header-group !important; /* Standard browser repeat for table headers on subsequent pages */
+    display: table-header-group !important;
   }
 
   tr {
-    page-break-inside: avoid !important; /* Prevents rows from breaking mid-text across pages */
+    page-break-inside: avoid !important;
   }
 
   td, th {
@@ -733,7 +739,7 @@ html.dark {
 
   @page {
     size: A4 portrait;
-    margin: 15mm 12mm 15mm 12mm;
+    margin: 10mm 10mm 10mm 10mm;
   }
 }
 
