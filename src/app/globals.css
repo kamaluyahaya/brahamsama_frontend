@@ -765,15 +765,17 @@ html.dark {
     font-weight: 900 !important;
     font-family: 'Outfit', sans-serif !important;
     letter-spacing: 0.15em !important;
-    color: rgba(15, 23, 42, 0.08) !important;
+    color: rgba(15, 23, 42, 0.14) !important;
     text-transform: uppercase !important;
     pointer-events: none !important;
     z-index: 0 !important;
     user-select: none !important;
   }
 
-  /* Ensure table sits above watermark */
-  table, .border-b-2 {
+  /* Make table, headers, rows and cells transparent so watermark shows through */
+  table, thead, tbody, tr, th, td {
+    background: transparent !important;
+    background-color: transparent !important;
     position: relative !important;
     z-index: 1 !important;
   }
