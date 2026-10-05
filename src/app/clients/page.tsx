@@ -13,7 +13,9 @@ import {
   Pencil,
   Edit2,
   CreditCard,
-  PlusCircle
+  PlusCircle,
+  FileText,
+  Printer
 } from 'lucide-react';
 import ModalPortal from '@/components/ModalPortal';
 
@@ -251,13 +253,23 @@ export default function ClientsPage() {
           <Users className="w-5 h-5 text-violet-500" />
           <span>Clients</span>
         </h2>
-        <Link
-          href="/clients/new"
-          className="bg-violet-600 hover:bg-violet-500 text-white font-semibold px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-violet-500/10 flex items-center gap-2 text-sm"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Client</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => window.print()}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10 flex items-center gap-2 text-sm"
+            title="Print Client List / Save as PDF"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Print</span>
+          </button>
+          <Link
+            href="/clients/new"
+            className="bg-violet-600 hover:bg-violet-500 text-white font-semibold px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-violet-500/10 flex items-center gap-2 text-sm"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Client</span>
+          </Link>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -783,6 +795,66 @@ export default function ClientsPage() {
           </div>
         </ModalPortal>
       )}
+
+      {/* Printable PDF Layout with Brahman Sama Branding */}
+      <div className="hidden print:block fixed inset-0 bg-white text-slate-900 p-8 z-[99999] overflow-visible">
+        {/* Brahman Sama Official Header */}
+        <div className="border-b-2 border-slate-800 pb-4 mb-6 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <img src="/logo.jpeg" alt="Brahman Sama Logo" className="w-16 h-16 object-contain rounded-lg border border-slate-200" />
+            <div>
+              <h1 className="text-2xl font-extrabold uppercase tracking-wide text-slate-900">BRAHMAN SAMA NIGERIA LIMITED</h1>
+              <p className="text-xs text-slate-600 font-semibold uppercase tracking-wider">Automobile & Vehicle Financing Services</p>
+              <p className="text-xs text-slate-500">Official Client Record & Directory Report</p>
+            </div>
+          </div>
+          <div className="text-right text-xs text-slate-600">
+            <p className="font-bold text-slate-800">Date Generated:</p>
+            <p>{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+            <p className="text-[10px] text-slate-400 mt-1">Total Records: {clients.length}</p>
+          </div>
+        </div>
+
+        {/* Client Table for PDF */}
+        <table className="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr className="bg-slate-100 border-b-2 border-slate-300 text-slate-800 font-bold uppercase text-[10px] tracking-wider">
+              <th className="py-2 px-3 border border-slate-300">#</th>
+              <th className="py-2 px-3 border border-slate-300">Client Name</th>
+              <th className="py-2 px-3 border border-slate-300">Phone / Email</th>
+              <th className="py-2 px-3 border border-slate-300">Branch</th>
+              <th className="py-2 px-3 border border-slate-300">File No</th>
+              <th className="py-2 px-3 border border-slate-300">Bank Details</th>
+              <th className="py-2 px-3 border border-slate-300">Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            {clients.map((client: any, idx: number) => (
+              <tr key={client.id} className="border-b border-slate-200">
+                <td className="py-2 px-3 border border-slate-200 font-semibold text-center">{idx + 1}</td>
+                <td className="py-2 px-3 border border-slate-200 font-bold text-slate-900">{client.name}</td>
+                <td className="py-2 px-3 border border-slate-200">
+                  <div>{client.phone || '-'}</div>
+                  <div className="text-[10px] text-slate-500">{client.email_address || ''}</div>
+                </td>
+                <td className="py-2 px-3 border border-slate-200 font-medium">{client.branch_name || client.office || '-'}</td>
+                <td className="py-2 px-3 border border-slate-200 font-mono text-[11px]">{client.file_no || '-'}</td>
+                <td className="py-2 px-3 border border-slate-200">
+                  <div className="font-semibold">{client.bank_name || '-'}</div>
+                  <div className="text-[10px] font-mono text-slate-600">{client.account_number || ''}</div>
+                </td>
+                <td className="py-2 px-3 border border-slate-200 text-[10px] max-w-[150px] truncate">{client.residential_address || '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Footer */}
+        <div className="mt-8 pt-4 border-t border-slate-300 text-[10px] text-slate-500 flex justify-between items-center">
+          <p>© {new Date().getFullYear()} Brahman Sama Nigeria Limited. Confidential Document.</p>
+          <p>Page 1 of 1</p>
+        </div>
+      </div>
     </div>
   );
 }
