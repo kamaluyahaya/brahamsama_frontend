@@ -11,6 +11,8 @@ import {
   Search,
   Eye,
   Pencil,
+  Edit2,
+  CreditCard,
   PlusCircle
 } from 'lucide-react';
 import ModalPortal from '@/components/ModalPortal';
@@ -54,6 +56,13 @@ function slugify(text: string): string {
     .replace(/\-\-+/g, '-');
 }
 
+// ---------------------------------------------------------------------------
+// Module-level client list cache.
+// Persists across client-side navigations within the same session.
+// Keyed by the search string so different searches are cached independently.
+// ---------------------------------------------------------------------------
+const _clientsCache: Record<string, Client[]> = {};
+
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [search, setSearch] = useState('');
@@ -79,6 +88,79 @@ export default function ClientsPage() {
     daily_return: ''
   });
   const [isAssigning, setIsAssigning] = useState(false);
+
+  // ── Edit Client Modal State ─────────────────────────────────────────────
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [editForm, setEditForm] = useState<Partial<Client>>({});
+  const [editPassportFile, setEditPassportFile] = useState<File | null>(null);
+  const [editPassportPreview, setEditPassportPreview] = useState<string | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [branches, setBranches] = useState<{ id: number; name: string }[]>([]);
+
+  const handleOpenEdit = (client: Client) => {
+    setEditingClient(client);
+    setEditForm({
+      name: client.name || '',
+      phone: client.phone || '',
+      email_address: client.email_address || '',
+      residential_address: client.residential_address || '',
+      office: client.office || '',
+      branch_id: client.branch_id ?? null,
+      id_details: client.id_details || '',
+      bank_name: client.bank_name || '',
+      account_name: client.account_name || '',
+      account_number: client.account_number || '',
+      file_no: client.file_no || '',
+      date_of_purchase: client.date_of_purchase || '',
+      date_of_first_disbursement: client.date_of_first_disbursement || '',
+      final_disbursement: client.final_disbursement || '',
+      vehicle_type_chassis: client.vehicle_type_chassis || '',
+      no_of_motorcycles: client.no_of_motorcycles ?? null,
+      chassis_no: client.chassis_no || '',
+      total_disbursed_amount: client.total_disbursed_amount ?? null,
+      utility_charges: client.utility_charges ?? null,
+      duration_of_completion: client.duration_of_completion || '',
+    });
+    setEditPassportFile(null);
+    setEditPassportPreview(null);
+    if (branches.length === 0) {
+      fetch('/api/branches').then(r => r.json()).then(data => setBranches(data)).catch(() => { });
+    }
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingClient) return;
+    setIsSavingEdit(true);
+    try {
+      const fd = new FormData();
+      Object.entries(editForm).forEach(([k, v]) => {
+        if (v !== null && v !== undefined) fd.append(k, String(v));
+      });
+      if (editPassportFile) fd.append('passport', editPassportFile);
+      const res = await fetch(`/api/clients/${editingClient.id}`, {
+        method: 'PUT',
+        body: fd,
+      });
+      if (res.ok) {
+        setShowEditModal(false);
+        setEditingClient(null);
+        // Invalidate cache and refresh list
+        Object.keys(_clientsCache).forEach((k) => delete _clientsCache[k]);
+        fetchClients(true);
+      } else {
+        const data = await res.json();
+        alert('Error: ' + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update client.');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
 
   const handleAssignMotorcycle = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +188,9 @@ export default function ClientsPage() {
           utility_charges: '',
           daily_return: ''
         });
-        fetchClients();
+        // Invalidate the cache so the updated count is shown immediately.
+        Object.keys(_clientsCache).forEach((k) => delete _clientsCache[k]);
+        fetchClients(true);
       } else {
         const data = await res.json();
         alert('Error: ' + data.message);
@@ -120,7 +204,15 @@ export default function ClientsPage() {
   };
 
   useEffect(() => {
-    fetchClients();
+    // If another page (e.g. /clients/new or assign modal) set the dirty flag,
+    // force a fresh fetch so the list reflects the new data.
+    const dirty = sessionStorage.getItem('clients_cache_dirty') === 'true';
+    if (dirty) {
+      sessionStorage.removeItem('clients_cache_dirty');
+      fetchClients(true);
+    } else {
+      fetchClients();
+    }
     setCurrentPage(1);
   }, [search]);
 
@@ -130,18 +222,24 @@ export default function ClientsPage() {
     }
   }, [searchParams, router]);
 
-  async function fetchClients() {
+  async function fetchClients(forceRefresh = false) {
+    // Serve from cache when available and no forced refresh is requested.
+    if (!forceRefresh && _clientsCache[search]) {
+      setClients(_clientsCache[search]);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const res = await fetch(`/api/clients?search=${encodeURIComponent(search)}`);
       if (res.ok) {
         const data = await res.json();
+        _clientsCache[search] = data; // store in cache
         setClients(data);
       }
     } catch (err) {
       console.error('Error fetching clients:', err);
     } finally {
-
       setLoading(false);
     }
   }
@@ -197,122 +295,128 @@ export default function ClientsPage() {
           <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">No clients found. Click &quot;Add Client Record&quot; to log one.</p>
         ) : (
           <>
-          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800/80">
-            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-sm">
-              <thead className="bg-slate-100 dark:bg-slate-955">
-                <tr>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Passport</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Phone</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tricycles</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Disbursement Date</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900/20">
-                {clients
-                  .slice((currentPage - 1) * RECORDS_PER_PAGE, currentPage * RECORDS_PER_PAGE)
-                  .map((client: any) => {
-                    const clientSlug = slugify(client.name) || client.id;
-                    return (
-                      <tr
-                        key={client.id}
-                        className="hover:bg-slate-100/40 dark:hover:bg-slate-800/20 cursor-pointer transition-colors"
-                        onClick={() => router.push(`/clients/${clientSlug}`)}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {client.passport_url ? (
-                            <img src={client.passport_url} alt="Passport" className="w-10 h-10 rounded-full object-cover border border-slate-300 dark:border-slate-705" />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-                              <User className="w-5 h-5" />
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800/80">
+              <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-sm">
+                <thead className="bg-slate-100 dark:bg-slate-955">
+                  <tr>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Client</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Phone</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tricycles</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Disbursement Date</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900/20">
+                  {clients
+                    .slice((currentPage - 1) * RECORDS_PER_PAGE, currentPage * RECORDS_PER_PAGE)
+                    .map((client: any) => {
+                      const clientSlug = slugify(client.name) || client.id;
+                      return (
+                        <tr
+                          key={client.id}
+                          className="hover:bg-slate-100/40 dark:hover:bg-slate-800/20 cursor-pointer transition-colors"
+                          onClick={() => router.push(`/clients/${clientSlug}`)}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-3">
+                              {client.passport_url ? (
+                                <img src={client.passport_url} alt="Passport" className="w-10 h-10 rounded-full object-cover border border-slate-300 dark:border-slate-700 shrink-0" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 shrink-0">
+                                  <User className="w-5 h-5" />
+                                </div>
+                              )}
+                              <span className="font-bold text-slate-800 dark:text-white">{client.name}</span>
                             </div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap font-bold text-slate-850 dark:text-white">{client.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{client.phone || 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-slate-650 dark:text-slate-350 font-bold">{client.tricycles_count || 0}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{client.date_of_first_disbursement || 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex gap-2">
-                            <button
-                              className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 transition-all flex items-center gap-1.5"
-                              onClick={() => router.push(`/clients/${clientSlug}`)}
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                              <span>View Details</span>
-                            </button>
-                            <button
-                              className="bg-violet-100 hover:bg-violet-200 dark:bg-violet-900/40 dark:hover:bg-violet-800/60 text-violet-700 dark:text-violet-300 text-xs font-semibold px-3 py-1.5 rounded-lg border border-violet-300 dark:border-violet-700/50 transition-all flex items-center gap-1.5"
-                              onClick={() => router.push(`/clients/${clientSlug}/edit`)}
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                              <span>Edit</span>
-                            </button>
-                            <button
-                              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-sm"
-                              onClick={() => { setAssigningClient(client); setMcForm({
-                                file_no: '',
-                                vehicle_type_chassis: '',
-                                chassis_no: '',
-                                date_of_purchase: '',
-                                duration_of_completion: '',
-                                date_of_first_disbursement: '',
-                                final_disbursement: '',
-                                total_disbursed_amount: '',
-                                utility_charges: '',
-                                daily_return: ''
-                              }); setShowAssignModal(true); }}
-                            >
-                              <PlusCircle className="w-3.5 h-3.5" />
-                              <span>Assign</span>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination Footer */}
-          {clients.length > RECORDS_PER_PAGE && (
-            <div className="flex items-center justify-between mt-4 px-2">
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Showing{' '}
-                <span className="font-semibold text-slate-700 dark:text-slate-200">
-                  {(currentPage - 1) * RECORDS_PER_PAGE + 1}
-                </span>
-                {' '}–{' '}
-                <span className="font-semibold text-slate-700 dark:text-slate-200">
-                  {Math.min(currentPage * RECORDS_PER_PAGE, clients.length)}
-                </span>
-                {' '}of{' '}
-                <span className="font-semibold text-slate-700 dark:text-slate-200">{clients.length}</span>
-                {' '}clients
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                >
-                  ← Previous
-                </button>
-                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 px-2">
-                  Page {currentPage} of {Math.ceil(clients.length / RECORDS_PER_PAGE)}
-                </span>
-                <button
-                  onClick={() => setCurrentPage((p) => Math.min(Math.ceil(clients.length / RECORDS_PER_PAGE), p + 1))}
-                  disabled={currentPage === Math.ceil(clients.length / RECORDS_PER_PAGE)}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                >
-                  Next →
-                </button>
-              </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{client.phone || 'N/A'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-slate-650 dark:text-slate-350 font-bold">{client.tricycles_count || 0}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{client.date_of_first_disbursement || 'N/A'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex gap-2">
+                              <button
+                                className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 transition-all flex items-center gap-1.5"
+                                onClick={() => router.push(`/clients/${clientSlug}`)}
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>View Details</span>
+                              </button>
+                              <button
+                                className="bg-violet-100 hover:bg-violet-200 dark:bg-violet-900/40 dark:hover:bg-violet-800/60 text-violet-700 dark:text-violet-300 text-xs font-semibold px-3 py-1.5 rounded-lg border border-violet-300 dark:border-violet-700/50 transition-all flex items-center gap-1.5"
+                                onClick={() => handleOpenEdit(client)}
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                                <span>Edit</span>
+                              </button>
+                              <button
+                                className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-sm"
+                                onClick={() => {
+                                  setAssigningClient(client); setMcForm({
+                                    file_no: '',
+                                    vehicle_type_chassis: '',
+                                    chassis_no: '',
+                                    date_of_purchase: '',
+                                    duration_of_completion: '',
+                                    date_of_first_disbursement: '',
+                                    final_disbursement: '',
+                                    total_disbursed_amount: '',
+                                    utility_charges: '',
+                                    daily_return: ''
+                                  }); setShowAssignModal(true);
+                                }}
+                              >
+                                <PlusCircle className="w-3.5 h-3.5" />
+                                <span>Assign</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
             </div>
-          )}
+
+            {/* Pagination Footer */}
+            {clients.length > RECORDS_PER_PAGE && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4 px-2">
+                {/* Record count */}
+                <p className="text-xs text-slate-500 dark:text-slate-400 text-center sm:text-left">
+                  Showing{' '}
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">
+                    {(currentPage - 1) * RECORDS_PER_PAGE + 1}
+                  </span>
+                  {' '}–{' '}
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">
+                    {Math.min(currentPage * RECORDS_PER_PAGE, clients.length)}
+                  </span>
+                  {' '}of{' '}
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">{clients.length}</span>
+                  {' '}clients
+                </p>
+
+                {/* Navigation buttons */}
+                <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="flex-1 sm:flex-none px-3 py-2 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-center"
+                  >
+                    ← Previous
+                  </button>
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-300 px-2 whitespace-nowrap">
+                    Page {currentPage} of {Math.ceil(clients.length / RECORDS_PER_PAGE)}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(Math.ceil(clients.length / RECORDS_PER_PAGE), p + 1))}
+                    disabled={currentPage === Math.ceil(clients.length / RECORDS_PER_PAGE)}
+                    className="flex-1 sm:flex-none px-3 py-2 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-center"
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -486,6 +590,195 @@ export default function ClientsPage() {
       )}
 
       {/* ReportPreviewModal is removed entirely */}
+
+      {/* ── Edit Client Modal ─────────────────────────────────────────── */}
+      {showEditModal && editingClient && (
+        <ModalPortal>
+          <div
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99999] flex items-start justify-center p-0 md:p-4 overflow-y-auto"
+            onClick={() => !isSavingEdit && setShowEditModal(false)}
+          >
+            <div
+              className="bg-white dark:bg-slate-900 border-0 md:border border-slate-200 dark:border-slate-800 w-full h-full md:h-auto max-w-none md:max-w-3xl md:max-h-[92vh] shadow-2xl relative overflow-hidden flex flex-col md:rounded-2xl my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-950/60 flex items-center justify-center text-violet-600">
+                    <Edit2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Edit Client Profile</h3>
+                    <p className="text-[10px] text-slate-400">{editingClient.name}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSaveEdit} className="flex-1 overflow-y-auto p-6 space-y-6">
+
+                {/* Passport Photo */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-2">Passport Photo</label>
+                  <div className="flex items-center gap-4">
+                    {editPassportPreview ? (
+                      <img src={editPassportPreview} className="w-20 h-20 rounded-xl object-cover border-2 border-violet-400" />
+                    ) : editingClient.passport_url ? (
+                      <img src={editingClient.passport_url} className="w-20 h-20 rounded-xl object-cover border-2 border-slate-300 dark:border-slate-700" />
+                    ) : (
+                      <div className="w-20 h-20 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                        <User className="w-8 h-8 text-slate-400" />
+                      </div>
+                    )}
+                    <label className="cursor-pointer bg-slate-100 dark:bg-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950/40 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-600 dark:text-slate-300 font-semibold transition-colors">
+                      Change Photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setEditPassportFile(file);
+                            const reader = new FileReader();
+                            reader.onloadend = () => setEditPassportPreview(reader.result as string);
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Personal Info */}
+                <div>
+                  <h4 className="text-[11px] font-bold text-violet-600 uppercase tracking-wider mb-3 flex items-center gap-1.5"><User className="w-3.5 h-3.5" /> Personal Information</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      { label: 'Full Name', key: 'name', required: true },
+                      { label: 'Phone Number', key: 'phone' },
+                      { label: 'Email Address', key: 'email_address', type: 'email' },
+                      { label: 'Government ID Details', key: 'id_details' },
+                    ].map(({ label, key, required, type }) => (
+                      <div key={key}>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">{label}{required && ' *'}</label>
+                        <input
+                          type={type || 'text'}
+                          required={required}
+                          value={(editForm as any)[key] || ''}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, [key]: e.target.value }))}
+                          className="w-full bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
+                        />
+                      </div>
+                    ))}
+                    <div className="sm:col-span-2">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Residential Address</label>
+                      <input
+                        type="text"
+                        value={editForm.residential_address || ''}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, residential_address: e.target.value }))}
+                        className="w-full bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Branch / Office</label>
+                      <select
+                        value={editForm.branch_id || ''}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, branch_id: e.target.value ? Number(e.target.value) : null }))}
+                        className="w-full bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
+                      >
+                        <option value="">-- Select Branch --</option>
+                        {branches.map(b => (
+                          <option key={b.id} value={b.id}>{b.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bank & Financial */}
+                <div>
+                  <h4 className="text-[11px] font-bold text-violet-600 uppercase tracking-wider mb-3 flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5" /> Bank &amp; Financial Info</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {[
+                      { label: 'Bank Name', key: 'bank_name' },
+                      { label: 'Account Name', key: 'account_name' },
+                      { label: 'Account Number', key: 'account_number' },
+                    ].map(({ label, key }) => (
+                      <div key={key}>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">{label}</label>
+                        <input
+                          type="text"
+                          value={(editForm as any)[key] || ''}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, [key]: e.target.value }))}
+                          className="w-full bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Contract & Vehicle Details */}
+                <div>
+                  <h4 className="text-[11px] font-bold text-violet-600 uppercase tracking-wider mb-3 flex items-center gap-1.5"><PlusCircle className="w-3.5 h-3.5" /> Contract &amp; Vehicle Details</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      { label: 'File No', key: 'file_no' },
+                      { label: 'Vehicle Type / Chassis', key: 'vehicle_type_chassis' },
+                      { label: 'Chassis No', key: 'chassis_no' },
+                      { label: 'No. of Motorcycles', key: 'no_of_motorcycles', type: 'number' },
+                      { label: 'Total Disbursed Amount (₦)', key: 'total_disbursed_amount', type: 'number' },
+                      { label: 'Utility Charges (₦)', key: 'utility_charges', type: 'number' },
+                      { label: 'Contract Duration', key: 'duration_of_completion' },
+                      { label: 'Date of Purchase', key: 'date_of_purchase', type: 'date' },
+                      { label: 'First Disbursement Date', key: 'date_of_first_disbursement', type: 'date' },
+                      { label: 'Final Disbursement Date', key: 'final_disbursement', type: 'date' },
+                    ].map(({ label, key, type }) => (
+                      <div key={key}>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">{label}</label>
+                        <input
+                          type={type || 'text'}
+                          step={type === 'number' ? 'any' : undefined}
+                          value={(editForm as any)[key] ?? ''}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, [key]: type === 'number' ? (e.target.value === '' ? null : Number(e.target.value)) : e.target.value }))}
+                          className="w-full bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-xs"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800 sticky bottom-0 bg-white dark:bg-slate-900 pb-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    disabled={isSavingEdit}
+                    className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold text-xs transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingEdit}
+                    className="bg-violet-600 hover:bg-violet-500 text-white font-semibold text-xs px-6 py-2.5 rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1.5"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    {isSavingEdit ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
     </div>
   );
 }

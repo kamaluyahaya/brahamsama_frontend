@@ -144,6 +144,8 @@ export default function NewClientPage() {
       });
 
       if (res.ok) {
+        // Signal the clients list to bypass its cache on next load.
+        sessionStorage.setItem('clients_cache_dirty', 'true');
         router.push('/clients');
       } else {
         const errData = await res.json();
