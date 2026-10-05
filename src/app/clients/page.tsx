@@ -856,10 +856,6 @@ export default function ClientsPage() {
         </table>
 
         {/* Footer */}
-        <div className="mt-8 pt-4 border-t border-slate-300 text-[10px] text-slate-500 flex justify-between items-center print-footer">
-          <p>© {new Date().getFullYear()} Brahman Sama Nigeria Limited. Confidential Client Report.</p>
-          <p className="font-semibold print-page-number">Document Confidential</p>
-        </div>
       </div>
     </>
   );
