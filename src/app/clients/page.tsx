@@ -245,18 +245,18 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24 sm:pb-6">
       <div className="flex justify-between items-center">
         <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
           <Users className="w-5 h-5 text-violet-500" />
-          <span>Client Administration (Clerks &amp; Sec Logs)</span>
+          <span>Clients</span>
         </h2>
         <Link
           href="/clients/new"
           className="bg-violet-600 hover:bg-violet-500 text-white font-semibold px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-violet-500/10 flex items-center gap-2 text-sm"
         >
           <Plus className="w-4 h-4" />
-          <span>Add Client Record</span>
+          <span>Add Client</span>
         </Link>
       </div>
 
@@ -322,9 +322,11 @@ export default function ClientsPage() {
                               {client.passport_url ? (
                                 <img src={client.passport_url} alt="Passport" className="w-10 h-10 rounded-full object-cover border border-slate-300 dark:border-slate-700 shrink-0" />
                               ) : (
-                                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 shrink-0">
-                                  <User className="w-5 h-5" />
-                                </div>
+                                <img
+                                  src="/logo.jpeg"
+                                  alt="Brahma Sama"
+                                  className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0"
+                                />
                               )}
                               <span className="font-bold text-slate-800 dark:text-white">{client.name}</span>
                             </div>
@@ -633,9 +635,11 @@ export default function ClientsPage() {
                     ) : editingClient.passport_url ? (
                       <img src={editingClient.passport_url} className="w-20 h-20 rounded-xl object-cover border-2 border-slate-300 dark:border-slate-700" />
                     ) : (
-                      <div className="w-20 h-20 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                        <User className="w-8 h-8 text-slate-400" />
-                      </div>
+                      <img
+                        src="/logo.jpeg"
+                        alt="Brahma Sama"
+                        className="w-20 h-20 rounded-xl object-cover border border-slate-200 dark:border-slate-700"
+                      />
                     )}
                     <label className="cursor-pointer bg-slate-100 dark:bg-slate-800 hover:bg-violet-50 dark:hover:bg-violet-950/40 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-600 dark:text-slate-300 font-semibold transition-colors">
                       Change Photo
