@@ -665,39 +665,53 @@ html.dark {
 
 /* Print CSS Styles for Multi-Page Reports */
 @media print {
-  body {
+  /* Reset html & body so browser pagination works cleanly */
+  html, body {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
     background: #ffffff !important;
     color: #000000 !important;
-    overflow: visible !important;
-    height: auto !important;
   }
 
-  /* Hide app navigation sidebar, headers, background panels, modals when printing */
-  .sidebar,
-  .nav-menu,
+  /* Completely hide layout elements (sidebar, app header, backdrop) */
+  aside,
   header,
-  footer,
-  .main-content > div:not(.print\:block),
+  nav,
+  .sidebar,
   .modal-overlay,
   button,
-  a {
+  .print\:hidden {
     display: none !important;
+    visibility: hidden !important;
   }
 
-  /* Ensure printable area takes full viewport with visible overflow across pages */
+  /* Reset main flex layout wrappers to default block flow */
+  .flex,
+  .flex-1,
+  .h-screen,
+  .overflow-hidden,
+  main {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+
+  /* Ensure printable area takes full width and page height */
   .print\:block {
     display: block !important;
     position: static !important;
     width: 100% !important;
     height: auto !important;
     overflow: visible !important;
-    inset: auto !important;
-    padding: 0 !important;
-    margin: 0 !important;
     background: white !important;
   }
 
-  /* Table multi-page break rules */
+  /* Clean up print table structure */
   table {
     width: 100% !important;
     border-collapse: collapse !important;
@@ -705,16 +719,16 @@ html.dark {
   }
 
   thead {
-    display: table-header-group !important; /* Repeats table header on top of each page */
+    display: table-header-group !important; /* Standard browser repeat for table headers on subsequent pages */
   }
 
   tr {
-    page-break-inside: avoid !important; /* Keeps individual row intact across page break */
-    page-break-after: auto !important;
+    page-break-inside: avoid !important; /* Prevents rows from breaking mid-text across pages */
   }
 
   td, th {
-    word-break: break-word !important;
+    word-break: normal !important;
+    white-space: normal !important;
   }
 
   @page {
@@ -722,4 +736,5 @@ html.dark {
     margin: 15mm 12mm 15mm 12mm;
   }
 }
+
 

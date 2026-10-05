@@ -247,7 +247,8 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="space-y-6 pb-24 sm:pb-6">
+    <>
+      <div className="space-y-6 pb-24 sm:pb-6 print:hidden">
       <div className="flex justify-between items-center">
         <h2 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
           <Users className="w-5 h-5 text-violet-500" />
@@ -795,6 +796,7 @@ export default function ClientsPage() {
           </div>
         </ModalPortal>
       )}
+      </div>
 
       {/* Printable PDF Layout with Brahman Sama Branding */}
       <div className="hidden print:block w-full bg-white text-slate-900 p-2">
@@ -819,31 +821,31 @@ export default function ClientsPage() {
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="bg-slate-100 border-b-2 border-slate-300 text-slate-800 font-bold uppercase text-[10px] tracking-wider">
-              <th className="py-2 px-3 border border-slate-300">#</th>
-              <th className="py-2 px-3 border border-slate-300">Client Name</th>
-              <th className="py-2 px-3 border border-slate-300">Phone / Email</th>
-              <th className="py-2 px-3 border border-slate-300">Branch</th>
-              <th className="py-2 px-3 border border-slate-300">File No</th>
-              <th className="py-2 px-3 border border-slate-300">Bank Details</th>
-              <th className="py-2 px-3 border border-slate-300">Address</th>
+              <th className="py-2.5 px-3 border border-slate-300 w-[5%] text-center">#</th>
+              <th className="py-2.5 px-3 border border-slate-300 w-[25%] whitespace-nowrap">Client Name</th>
+              <th className="py-2.5 px-3 border border-slate-300 w-[15%] whitespace-nowrap">Phone / Email</th>
+              <th className="py-2.5 px-3 border border-slate-300 w-[12%] whitespace-nowrap">Branch</th>
+              <th className="py-2.5 px-3 border border-slate-300 w-[10%] whitespace-nowrap">File No</th>
+              <th className="py-2.5 px-3 border border-slate-300 w-[18%] whitespace-nowrap">Bank Details</th>
+              <th className="py-2.5 px-3 border border-slate-300 w-[15%]">Address</th>
             </tr>
           </thead>
           <tbody>
             {clients.map((client: any, idx: number) => (
               <tr key={client.id} className="border-b border-slate-200">
                 <td className="py-2 px-3 border border-slate-200 font-semibold text-center">{idx + 1}</td>
-                <td className="py-2 px-3 border border-slate-200 font-bold text-slate-900">{client.name}</td>
-                <td className="py-2 px-3 border border-slate-200">
-                  <div>{client.phone || '-'}</div>
+                <td className="py-2 px-3 border border-slate-200 font-bold text-slate-900 leading-tight">{client.name}</td>
+                <td className="py-2 px-3 border border-slate-200 whitespace-nowrap">
+                  <div className="font-medium">{client.phone || '-'}</div>
                   <div className="text-[10px] text-slate-500">{client.email_address || ''}</div>
                 </td>
-                <td className="py-2 px-3 border border-slate-200 font-medium">{client.branch_name || client.office || '-'}</td>
-                <td className="py-2 px-3 border border-slate-200 font-mono text-[11px]">{client.file_no || '-'}</td>
+                <td className="py-2 px-3 border border-slate-200 font-medium whitespace-nowrap">{client.branch_name || client.office || '-'}</td>
+                <td className="py-2 px-3 border border-slate-200 font-mono text-[11px] whitespace-nowrap">{client.file_no || '-'}</td>
                 <td className="py-2 px-3 border border-slate-200">
-                  <div className="font-semibold">{client.bank_name || '-'}</div>
+                  <div className="font-semibold leading-tight">{client.bank_name || '-'}</div>
                   <div className="text-[10px] font-mono text-slate-600">{client.account_number || ''}</div>
                 </td>
-                <td className="py-2 px-3 border border-slate-200 text-[10px] max-w-[150px] truncate">{client.residential_address || '-'}</td>
+                <td className="py-2 px-3 border border-slate-200 text-[10px] leading-normal">{client.residential_address || '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -855,6 +857,6 @@ export default function ClientsPage() {
           <p>Page 1 of 1</p>
         </div>
       </div>
-    </div>
+    </>
   );
 }
