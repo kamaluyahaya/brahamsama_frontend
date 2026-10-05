@@ -381,7 +381,7 @@ export default function ClientsPage() {
 
             {/* Pagination Footer */}
             {clients.length > RECORDS_PER_PAGE && (
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4 px-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4 mb-8 sm:mb-0 px-2">
                 {/* Record count */}
                 <p className="text-xs text-slate-500 dark:text-slate-400 text-center sm:text-left">
                   Showing{' '}
