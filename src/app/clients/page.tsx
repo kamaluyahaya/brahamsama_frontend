@@ -799,7 +799,11 @@ export default function ClientsPage() {
       </div>
 
       {/* Printable PDF Layout with Brahman Sama Branding */}
-      <div className="hidden print:block w-full bg-white text-slate-900 p-2">
+      <div className="hidden print:block w-full bg-white text-slate-900 p-2 relative">
+        {/* Diagonal Watermark on Each Page */}
+        <div className="print-watermark" aria-hidden="true">
+          CONFIDENTIAL
+        </div>
         {/* Brahman Sama Official Header */}
         <div className="border-b-2 border-slate-800 pb-4 mb-6 flex justify-between items-center">
           <div className="flex items-center gap-4">
@@ -852,9 +856,9 @@ export default function ClientsPage() {
         </table>
 
         {/* Footer */}
-        <div className="mt-8 pt-4 border-t border-slate-300 text-[10px] text-slate-500 flex justify-between items-center">
-          <p>© {new Date().getFullYear()} Brahman Sama Nigeria Limited. Confidential Document.</p>
-          <p>Page 1 of 1</p>
+        <div className="mt-8 pt-4 border-t border-slate-300 text-[10px] text-slate-500 flex justify-between items-center print-footer">
+          <p>© {new Date().getFullYear()} Brahman Sama Nigeria Limited. Confidential Client Report.</p>
+          <p className="font-semibold print-page-number">Document Confidential</p>
         </div>
       </div>
     </>

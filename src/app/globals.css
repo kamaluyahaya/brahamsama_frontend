@@ -739,7 +739,48 @@ html.dark {
 
   @page {
     size: A4 portrait;
-    margin: 10mm 10mm 10mm 10mm;
+    margin: 12mm 10mm 15mm 10mm;
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages);
+      font-size: 9pt;
+      font-family: 'Outfit', sans-serif;
+      color: #64748b;
+    }
+    @bottom-left {
+      content: "© Brahman Sama Nigeria Limited";
+      font-size: 9pt;
+      font-family: 'Outfit', sans-serif;
+      color: #64748b;
+    }
+  }
+
+  /* Diagonal Watermark Repeated on Every Printed Page */
+  .print-watermark {
+    display: block !important;
+    position: fixed !important;
+    top: 40% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) rotate(-35deg) !important;
+    font-size: 85pt !important;
+    font-weight: 900 !important;
+    font-family: 'Outfit', sans-serif !important;
+    letter-spacing: 0.15em !important;
+    color: rgba(15, 23, 42, 0.08) !important;
+    text-transform: uppercase !important;
+    pointer-events: none !important;
+    z-index: 0 !important;
+    user-select: none !important;
+  }
+
+  /* Ensure table sits above watermark */
+  table, .border-b-2 {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  /* Browser fallback page number styling */
+  .print-page-number::after {
+    content: " (Page " counter(page) ")";
   }
 }
 
