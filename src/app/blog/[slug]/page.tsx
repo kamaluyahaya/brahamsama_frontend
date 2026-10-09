@@ -52,7 +52,7 @@ export default function BlogDetailPage({ params }: { params: { slug: string } })
     return (
       <div style={{ background: '#020617', minHeight: '100vh', padding: 40, textAlign: 'center', color: '#ffffff' }}>
         <h2 style={{ fontSize: 24, marginBottom: 16 }}>Article Not Found</h2>
-        <Link href="/welcome#blog" style={{ color: '#fbbf24', textDecoration: 'underline' }}>Back to Welcome Page</Link>
+        <Link href="/#blog" style={{ color: '#fbbf24', textDecoration: 'underline' }}>Back to Welcome Page</Link>
       </div>
     );
   }
@@ -62,7 +62,7 @@ export default function BlogDetailPage({ params }: { params: { slug: string } })
       {/* HEADER */}
       <header style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(2, 6, 23, 0.8)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 50, padding: '16px 24px' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/welcome#blog" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#fbbf24', textDecoration: 'none', fontWeight: 700, fontSize: 14 }}>
+          <Link href="/#blog" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#fbbf24', textDecoration: 'none', fontWeight: 700, fontSize: 14 }}>
             <ArrowLeft size={18} /> Back to Blog Posts
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

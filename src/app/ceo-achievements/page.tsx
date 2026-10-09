@@ -27,7 +27,7 @@ export default function CeoAchievementsPage() {
       {/* HEADER */}
       <header style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(2, 6, 23, 0.8)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 50, padding: '16px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/welcome" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#fbbf24', textDecoration: 'none', fontWeight: 700, fontSize: 14 }}>
+          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#fbbf24', textDecoration: 'none', fontWeight: 700, fontSize: 14 }}>
             <ArrowLeft size={18} /> Back to Welcome Page
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

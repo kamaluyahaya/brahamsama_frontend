@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import WelcomePage from './welcome/page';
 import {
   LayoutDashboard,
   Users,
@@ -31,6 +32,21 @@ interface DashboardStats {
 }
 
 export default function Dashboard() {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const authStatus = localStorage.getItem('isLoggedIn') === 'true';
+    setIsLoggedIn(authStatus);
+  }, []);
+
+  // Show welcome page for unauthenticated users at root URL
+  if (isLoggedIn === null) return null; // Wait for auth check
+  if (!isLoggedIn) return <WelcomePage />;
+
+  return <DashboardContent />;
+}
+
+function DashboardContent() {
   const [stats, setStats] = useState<DashboardStats>({
     clientsCount: 0,
     raidersCount: 0,
