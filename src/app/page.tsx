@@ -46,6 +46,7 @@ export default function Dashboard() {
   const [recentCompliance, setRecentCompliance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
   // Client Specific States
   const [clientRaiders, setClientRaiders] = useState<any[]>([]);
@@ -95,6 +96,8 @@ export default function Dashboard() {
   useEffect(() => {
     let user: any = null;
     if (typeof window !== 'undefined') {
+      const auth = localStorage.getItem('isLoggedIn') === 'true';
+      setIsLoggedIn(auth);
       const storedUser = localStorage.getItem('currentUser');
       if (storedUser) {
         user = JSON.parse(storedUser);
