@@ -90,8 +90,8 @@ export default function RootLayout({
       }
     }
 
-    if (!authStatus && pathname !== '/login' && pathname !== '/client-login' && pathname !== '/welcome' && pathname !== '/history' && pathname !== '/ceo-achievements' && !pathname.startsWith('/blog')) {
-      router.push('/welcome');
+    if (!authStatus && pathname !== '/' && pathname !== '/login' && pathname !== '/client-login' && pathname !== '/welcome' && pathname !== '/history' && pathname !== '/ceo-achievements' && !pathname.startsWith('/blog')) {
+      router.push('/');
     } else if (authStatus && parsedUser?.role === 'Manager') {
       const restrictedRoutes = ['/clients', '/md-leaders', '/staff', '/compliance', '/accounts', '/raiders', '/branches', '/my-vehicles', '/assets'];
       if (restrictedRoutes.some(route => pathname.startsWith(route))) {
@@ -322,7 +322,7 @@ export default function RootLayout({
   ];
 
   // Bypass Sidebar and Headers for Login / Landing views
-  if (pathname === '/login' || pathname === '/client-login' || pathname === '/welcome' || pathname === '/history' || pathname === '/ceo-achievements' || pathname.startsWith('/blog')) {
+  if (pathname === '/login' || pathname === '/client-login' || pathname === '/welcome' || pathname === '/history' || pathname === '/ceo-achievements' || pathname.startsWith('/blog') || (!isLoggedIn && pathname === '/')) {
     return (
       <html lang="en">
         <head>

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import WelcomePage from './welcome/page';
 import {
   LayoutDashboard,
   Users,
