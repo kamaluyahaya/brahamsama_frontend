@@ -242,6 +242,30 @@ export default function ClientDetailPage() {
   const handleSaveMotorcycle = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!client) return;
+
+    const trimmedChassis = mcForm.chassis_no ? mcForm.chassis_no.trim() : '';
+    const trimmedFileNo = mcForm.file_no ? mcForm.file_no.trim() : '';
+
+    if (trimmedChassis && trimmedChassis !== 'N/A') {
+      const duplicateChassis = motorcycles.find(
+        (m) => m.chassis_no && m.chassis_no.trim().toLowerCase() === trimmedChassis.toLowerCase() && m.id !== editingMc?.id
+      );
+      if (duplicateChassis) {
+        alert(`A vehicle with Chassis No "${trimmedChassis}" is already assigned to this client.`);
+        return;
+      }
+    }
+
+    if (trimmedFileNo && trimmedFileNo !== 'N/A') {
+      const duplicateFileNo = motorcycles.find(
+        (m) => m.file_no && m.file_no.trim().toLowerCase() === trimmedFileNo.toLowerCase() && m.id !== editingMc?.id
+      );
+      if (duplicateFileNo) {
+        alert(`A vehicle with File No "${trimmedFileNo}" is already assigned to this client.`);
+        return;
+      }
+    }
+
     setIsSavingMc(true);
     try {
       const url = editingMc
