@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import WelcomePage from './welcome/page';
 import {
   LayoutDashboard,
   Users,
@@ -46,7 +45,6 @@ export default function Dashboard() {
   const [recentCompliance, setRecentCompliance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
   // Client Specific States
   const [clientRaiders, setClientRaiders] = useState<any[]>([]);
@@ -96,8 +94,6 @@ export default function Dashboard() {
   useEffect(() => {
     let user: any = null;
     if (typeof window !== 'undefined') {
-      const auth = localStorage.getItem('isLoggedIn') === 'true';
-      setIsLoggedIn(auth);
       const storedUser = localStorage.getItem('currentUser');
       if (storedUser) {
         user = JSON.parse(storedUser);
@@ -526,10 +522,6 @@ export default function Dashboard() {
     // Sort by date desc
     return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   };
-
-  if (isLoggedIn === false) {
-    return <WelcomePage />;
-  }
 
   // -------------------------------------------------------------
   // CLIENT DASHBOARD RENDER

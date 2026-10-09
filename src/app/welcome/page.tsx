@@ -97,12 +97,7 @@ export default function WelcomePage() {
   const [submitStatus, setSubmitStatus] = useState<{ type: 'success' | 'error' | null; text: string }>({ type: null, text: '' });
   const [loading, setLoading] = useState(false);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsLoggedIn(localStorage.getItem('isLoggedIn') === 'true');
-    }
     setBlogLoading(true);
     fetch('/api/blog/public')
       .then(res => res.json())
@@ -222,20 +217,12 @@ export default function WelcomePage() {
 
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <div className="desktop-only" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              {isLoggedIn ? (
-                <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f59e0b', color: '#1a2332', fontWeight: 800, fontSize: 13, padding: '10px 18px', borderRadius: 12, textDecoration: 'none', transition: 'all 0.2s' }}>
-                  Go to Dashboard <ArrowRight size={15} />
-                </Link>
-              ) : (
-                <>
-                  <Link href="/client-login" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)', color: '#ffffff', fontWeight: 700, fontSize: 13, padding: '10px 18px', borderRadius: 12, textDecoration: 'none', transition: 'all 0.2s' }}>
-                    Client Login
-                  </Link>
-                  <Link href="/login" style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f59e0b', color: '#1a2332', fontWeight: 800, fontSize: 13, padding: '10px 18px', borderRadius: 12, textDecoration: 'none', transition: 'all 0.2s' }}>
-                    Staff Login <ArrowRight size={15} />
-                  </Link>
-                </>
-              )}
+              <Link href="/client-login" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)', color: '#ffffff', fontWeight: 700, fontSize: 13, padding: '10px 18px', borderRadius: 12, textDecoration: 'none', transition: 'all 0.2s' }}>
+                Client Login
+              </Link>
+              <Link href="/login" style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f59e0b', color: '#1a2332', fontWeight: 800, fontSize: 13, padding: '10px 18px', borderRadius: 12, textDecoration: 'none', transition: 'all 0.2s' }}>
+                Staff Login <ArrowRight size={15} />
+              </Link>
             </div>
             <button className="mobile-only" onClick={() => setMobileOpen(!mobileOpen)} style={{ background: 'var(--w-bg-card)', border: '1px solid var(--w-border)', color: 'var(--w-text-primary)', padding: 8, borderRadius: 10, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
               {mobileOpen ? <X size={20} /> : <Menu size={20} />}
