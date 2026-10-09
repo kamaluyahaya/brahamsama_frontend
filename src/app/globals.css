@@ -739,7 +739,7 @@ html.dark {
 
   @page {
     size: A4 portrait;
-    margin: 12mm 10mm 15mm 10mm;
+    margin: 12mm 15mm 15mm 15mm;
     @bottom-right {
       content: "Page " counter(page) " of " counter(pages);
       font-size: 9pt;

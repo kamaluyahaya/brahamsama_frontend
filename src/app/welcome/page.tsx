@@ -59,8 +59,8 @@ const SERVICES = [
 const TEAM = [
   { name: 'Braham Sama', role: 'Chief Executive Officer', image: '/team/CEO.jpeg', emoji: '👔', desc: "Visionary leader driving Braham Sama's mission to empower transport asset owners and operators through structured management." },
   { name: 'Director-General of Operations', role: 'Director-General of Operations (DGO)', image: '/team/DGO.jpeg', emoji: '⚙️', desc: 'Overseeing company-wide branch operations, rider deployment, compliance monitoring, and fleet management nationwide.' },
-  { name: 'Finance Officer', role: 'Chief Finance Officer', emoji: '💼', desc: 'Managing the financial health of the organization through disciplined bookkeeping, reporting and strategic planning.' },
-  { name: 'Compliance Lead', role: 'Compliance & Risk Manager', emoji: '🛡️', desc: 'Ensuring all operations adhere to internal policies and regulatory frameworks to protect company interests.' },
+  { name: 'Sadiya', role: 'Accountant', image: '/team/accountant.jpeg', emoji: '💼', desc: 'Managing financial records, bookkeeping, reporting, and accounts across company operations.' },
+  { name: 'Jawahir', role: 'Admin Officer', image: '/team/admin_officer.jpeg', emoji: '📋', desc: 'Handling office administration, documentation, communication, and overall administrative coordination.' },
 ];
 
 const STATS = [

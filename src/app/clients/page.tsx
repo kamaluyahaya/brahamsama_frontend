@@ -805,11 +805,11 @@ export default function ClientsPage() {
           CONFIDENTIAL
         </div>
         {/* Brahman Sama Official Header */}
-        <div className="border-b-2 border-slate-800 pb-4 mb-6 flex justify-between items-center">
+        <div className=" flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <img src="/logo.jpeg" alt="Brahman Sama Logo" className="w-16 h-16 object-contain rounded-lg border border-slate-200" />
+            <img src="/logo.jpeg" alt="Brahman Sama Logo" className="w-16 h-16 object-contain " />
             <div>
-              <h1 className="text-2xl font-extrabold uppercase tracking-wide text-slate-900">BRAHMAN SAMA NIGERIA LIMITED</h1>
+              <h1 className="text-2xl font-extrabold uppercase tracking-wide text-slate-900">BRAHAM SAMA NIGERIA LIMITED</h1>
               <p className="text-xs text-slate-600 font-semibold uppercase tracking-wider">Automobile & Vehicle Financing Services</p>
               <p className="text-xs text-slate-500">Official Client Record & Directory Report</p>
             </div>
@@ -819,6 +819,13 @@ export default function ClientsPage() {
             <p>{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
             <p className="text-[10px] text-slate-400 mt-1">Total Records: {clients.length}</p>
           </div>
+        </div>
+
+        {/* Centered Document Title Banner */}
+        <div className="text-center my-4 py-2">
+          <h1 className="text-sm font-black uppercase tracking-widest text-slate-900">
+            CLIENT RECORDS SYSTEM
+          </h1>
         </div>
 
         {/* Client Table for PDF */}
