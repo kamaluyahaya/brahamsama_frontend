@@ -29,6 +29,7 @@ interface DashboardStats {
   totalExpenses: number;
   totalDisbursedToClients: number;
   complianceCount: number;
+  totalTricycles: number;
 }
 
 export default function Dashboard() {
@@ -55,6 +56,7 @@ function DashboardContent() {
     totalExpenses: 0,
     totalDisbursedToClients: 0,
     complianceCount: 0,
+    totalTricycles: 0,
   });
 
   const [recentReturns, setRecentReturns] = useState<any[]>([]);
@@ -120,9 +122,35 @@ function DashboardContent() {
     async function fetchDashboardData() {
       try {
         setLoading(true);
+
+        // Client-side cache key for Admin Dashboard stats
+        const cacheKey = 'admin_dashboard_stats_cache';
+        const isDirty = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('dashboard_stats_cache_dirty') === 'true';
+
+        if (!isDirty && typeof sessionStorage !== 'undefined') {
+          const cachedStr = sessionStorage.getItem(cacheKey);
+          if (cachedStr) {
+            try {
+              const cachedData = JSON.parse(cachedStr);
+              setStats(cachedData.stats);
+              setRecentReturns(cachedData.recentReturns);
+              setRecentCompliance(cachedData.recentCompliance);
+              setLoading(false);
+              return;
+            } catch (e) {
+              // Ignore cache parse error and fallback to fetch
+            }
+          }
+        }
+
         // Fetch clients
         const clientsRes = await fetch('/api/clients');
         const clients = clientsRes.ok ? await clientsRes.json() : [];
+
+        // Compute total tricycles across clients
+        const totalTricycles = clients.reduce((sum: number, client: any) => {
+          return sum + (client.tricycles_count || (client.chassis_no || client.vehicle_type_chassis ? 1 : 0));
+        }, 0);
 
         // Fetch raiders
         const raidersRes = await fetch('/api/raiders');
@@ -140,7 +168,7 @@ function DashboardContent() {
         const reportRes = await fetch('/api/accounts/generate-report');
         const reportData = reportRes.ok ? await reportRes.json() : { summary: { totalReturns: 0, totalExpenses: 0, totalDisbursedToClients: 0 }, detailedReturns: [], detailedExpenses: [] };
 
-        setStats({
+        const freshStats: DashboardStats = {
           clientsCount: clients.length,
           raidersCount: raiders.length,
           mdCount: mdLeaders.length,
@@ -148,10 +176,26 @@ function DashboardContent() {
           totalExpenses: reportData.summary.totalExpenses,
           totalDisbursedToClients: reportData.summary.totalDisbursedToClients || 0,
           complianceCount: compliance.filter((c: any) => c.status === 'Pending').length,
-        });
+          totalTricycles,
+        };
 
-        setRecentReturns(reportData.detailedReturns.slice(0, 5));
-        setRecentCompliance(compliance.slice(0, 5));
+        const freshReturns = reportData.detailedReturns.slice(0, 5);
+        const freshCompliance = compliance.slice(0, 5);
+
+        setStats(freshStats);
+        setRecentReturns(freshReturns);
+        setRecentCompliance(freshCompliance);
+
+        // Cache the fetched result in sessionStorage
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.setItem(cacheKey, JSON.stringify({
+            stats: freshStats,
+            recentReturns: freshReturns,
+            recentCompliance: freshCompliance,
+            timestamp: Date.now()
+          }));
+          sessionStorage.removeItem('dashboard_stats_cache_dirty');
+        }
       } catch (err) {
         console.error('Error fetching dashboard statistics:', err);
       } finally {
@@ -1444,7 +1488,7 @@ function DashboardContent() {
       </h2>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm border-l-4 border-l-violet-500 hover:border-l-violet-400 transition-all duration-300">
           <div className="flex justify-between items-start">
             <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Registered Clients</div>
@@ -1452,6 +1496,15 @@ function DashboardContent() {
           </div>
           <div className="text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white mt-2">{loading ? '...' : stats.clientsCount}</div>
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Clerk & Sec auxiliary entries</p>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm border-l-4 border-l-purple-500 hover:border-l-purple-400 transition-all duration-300">
+          <div className="flex justify-between items-start">
+            <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Tricycles</div>
+            <Bike className="w-4 h-4 text-purple-500" />
+          </div>
+          <div className="text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white mt-2">{loading ? '...' : stats.totalTricycles}</div>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Total registered fleet vehicles</p>
         </div>
 
         <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm border-l-4 border-l-cyan-500 hover:border-l-cyan-400 transition-all duration-300">

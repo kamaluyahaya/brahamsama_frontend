@@ -21,6 +21,7 @@ export default function NewClientPage() {
   const [passportFile, setPassportFile] = useState<File | null>(null);
   const [passportPreview, setPassportPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -78,6 +79,7 @@ export default function NewClientPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (formError) setFormError(null);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,17 +95,22 @@ export default function NewClientPage() {
   };
 
   const handleNext = () => {
+    setFormError(null);
     if (step === 1) {
-      if (!formData.name) {
-        alert('Client Name is required.');
+      if (!formData.name || !formData.name.trim()) {
+        setFormError('Client Full Name is required.');
         return;
       }
-      if (!formData.username) {
-        alert('Portal Username is required.');
+      if (!formData.phone || !formData.phone.trim()) {
+        setFormError('Client Phone Number is required.');
         return;
       }
-      if (!formData.password) {
-        alert('Portal Password is required.');
+      if (!formData.username || !formData.username.trim()) {
+        setFormError('Portal Username is required.');
+        return;
+      }
+      if (!formData.password || !formData.password.trim()) {
+        setFormError('Portal Password is required.');
         return;
       }
     }
@@ -113,13 +120,21 @@ export default function NewClientPage() {
   };
 
   const handlePrev = () => {
+    setFormError(null);
     setStep(prev => prev - 1);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name) {
-      alert('Client Name is required');
+    setFormError(null);
+
+    if (!formData.name || !formData.name.trim()) {
+      setFormError('Client Full Name is required');
+      return;
+    }
+
+    if (!formData.phone || !formData.phone.trim()) {
+      setFormError('Client Phone Number is required');
       return;
     }
 
@@ -144,16 +159,17 @@ export default function NewClientPage() {
       });
 
       if (res.ok) {
-        // Signal the clients list to bypass its cache on next load.
+        // Signal the clients list and dashboard stats cache to refresh on next load.
         sessionStorage.setItem('clients_cache_dirty', 'true');
+        sessionStorage.setItem('dashboard_stats_cache_dirty', 'true');
         router.push('/clients');
       } else {
         const errData = await res.json();
-        alert('Error: ' + errData.message);
+        setFormError(errData.message || 'Error creating client record');
       }
     } catch (err) {
       console.error('Error creating client:', err);
-      alert('Failed to save client record');
+      setFormError('Failed to save client record. Please check your connection.');
     } finally {
       setIsSubmitting(false);
     }
@@ -237,6 +253,19 @@ export default function NewClientPage() {
       {/* Form Content */}
       <div className="bg-white dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-6">
+          {formError && (
+            <div className="bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 p-4 rounded-xl text-sm font-semibold flex items-center justify-between animate-fadeIn">
+              <span>{formError}</span>
+              <button
+                type="button"
+                onClick={() => setFormError(null)}
+                className="text-xs font-bold hover:underline ml-4 uppercase tracking-wider"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+
           {/* STEP 1: Personal Details */}
           {step === 1 && (
             <div className="space-y-6">
@@ -285,12 +314,13 @@ export default function NewClientPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Phone Number</label>
+                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Phone Number *</label>
                         <input
                           type="text"
                           name="phone"
                           value={formData.phone}
                           onChange={handleInputChange}
+                          required
                           className="bg-slate-50 dark:bg-slate-955 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 text-sm"
                           placeholder="e.g. +234..."
                         />

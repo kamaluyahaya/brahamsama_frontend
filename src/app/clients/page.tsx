@@ -151,6 +151,7 @@ export default function ClientsPage() {
         setEditingClient(null);
         // Invalidate cache and refresh list
         Object.keys(_clientsCache).forEach((k) => delete _clientsCache[k]);
+        sessionStorage.setItem('dashboard_stats_cache_dirty', 'true');
         fetchClients(true);
       } else {
         const data = await res.json();
@@ -192,6 +193,7 @@ export default function ClientsPage() {
         });
         // Invalidate the cache so the updated count is shown immediately.
         Object.keys(_clientsCache).forEach((k) => delete _clientsCache[k]);
+        sessionStorage.setItem('dashboard_stats_cache_dirty', 'true');
         fetchClients(true);
       } else {
         const data = await res.json();
@@ -315,7 +317,6 @@ export default function ClientsPage() {
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Client</th>
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Phone</th>
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tricycles</th>
-                      <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Disbursement Date</th>
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
@@ -346,7 +347,6 @@ export default function ClientsPage() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{client.phone || 'N/A'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-slate-650 dark:text-slate-350 font-bold">{client.tricycles_count || 0}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300">{client.date_of_first_disbursement || 'N/A'}</td>
                             <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                               <div className="flex gap-2">
                                 <button
